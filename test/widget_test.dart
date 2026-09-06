@@ -1,30 +1,35 @@
-// This is a basic Flutter widget test.
+// This is a basic Flutter widget test for the updated Kids Calculator app.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Note: pumpAndSettle() is intentionally avoided here because StartScreen
+// contains a repeating bounce animation that never settles.
+// We use pump(Duration) instead to advance frames without waiting forever.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:calculator_kids/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App launches and shows Start screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const KalkulatorKidsApp());
+    // Advance enough frames for the initial build to complete without
+    // waiting for the infinite bounce animation to settle.
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // The start screen should show the app title and the start button
+    expect(find.text('Kalkulator Anak'), findsWidgets);
+    expect(find.text('✨  Mulai Belajar!'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('Start button navigates to Mode Selection screen',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const KalkulatorKidsApp());
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('✨  Mulai Belajar!'));
+    // Advance through the Cupertino page transition
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Pilih Mode Belajar'), findsOneWidget);
   });
 }

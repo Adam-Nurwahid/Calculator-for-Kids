@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 
 /// Welcome / home screen for the Kids Calculator app.
 class StartScreen extends StatefulWidget {
@@ -35,11 +36,11 @@ class _StartScreenState extends State<StartScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF5C6BC0),
+      backgroundColor: AppColors.calcBackground,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: const Color(0xFF5C6BC0),
+        color: AppColors.calcBackground,
         child: SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -154,7 +155,7 @@ class _StartButtonState extends State<_StartButton>
               fontFamily: 'Fredoka One',
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5C6BC0),
+              color: AppColors.calcTextDark,
             ),
           ),
         ),

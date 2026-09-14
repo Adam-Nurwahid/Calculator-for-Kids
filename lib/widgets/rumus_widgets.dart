@@ -5,40 +5,41 @@
 // consistent.  No external packages — Flutter SDK only.
 
 import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 
 // ---------------------------------------------------------------------------
-// Design tokens
+// Design tokens — all values delegate to AppColors for a single source of truth
 // ---------------------------------------------------------------------------
 
 /// Primary orange used for header cards and accent elements.
-const kRumusOrange = Color(0xFFE07B54);
+const kRumusOrange = AppColors.lessonHeaderBg;
 
 /// Darker orange for shadows / secondary elements.
-const kRumusOrangeDark = Color(0xFFBF5A38);
+const kRumusOrangeDark = AppColors.accentOrangeDark;
 
 /// Screen background.
-const kRumusBg = Color(0xFFF5F5F5);
+const kRumusBg = AppColors.screenBg;
 
 /// Dark text color.
-const kRumusTextDark = Color(0xFF37474F);
+const kRumusTextDark = AppColors.textTitle;
 
 /// Muted / subtitle text.
-const kRumusTextMuted = Color(0xFF78909C);
+const kRumusTextMuted = AppColors.textDescription;
 
-/// Tips box background.
+/// Tips box background — warm amber tint.
 const kTipsBg = Color(0xFFFFF8E1);
 
 /// Tips box border.
-const kTipsBorder = Color(0xFFFFB300);
+const kTipsBorder = AppColors.lessonHeaderBg;
 
-/// Formula card background.
+/// Formula card background — light blue tint (semantic; not a primary palette color).
 const kFormulaBg = Color(0xFFE3F2FD);
 
-/// Formula card border.
+/// Formula card border — blue (semantic; not a primary palette color).
 const kFormulaBorder = Color(0xFF1E88E5);
 
 /// Section divider.
-const kDivider = Color(0xFFE0E0E0);
+const kDivider = AppColors.tipBoxBorder;
 
 // ---------------------------------------------------------------------------
 // RumusScaffold — page wrapper with orange header card
@@ -138,7 +139,6 @@ class RumusScaffold extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
-                              fontFamily: 'Fredoka One',
                             ),
                           ),
                           Text(
@@ -146,7 +146,6 @@ class RumusScaffold extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 26,
-                              fontFamily: 'Fredoka One',
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -155,13 +154,17 @@ class RumusScaffold extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (headerExtra != null) ...[
-                  const SizedBox(height: 16),
-                  headerExtra!,
-                ],
               ],
             ),
           ),
+          // ── Dark operator nav bar (rendered only when headerExtra is set) ─
+          if (headerExtra != null)
+            Container(
+              width: double.infinity,
+              color: AppColors.lessonNavBarBg,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: headerExtra!,
+            ),
           // ── Scrollable body ─────────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
@@ -179,8 +182,16 @@ class RumusScaffold extends StatelessWidget {
 // OperatorTabRow — 4 operator icon shortcuts (arithmetic pages only)
 // ---------------------------------------------------------------------------
 
-/// A row of 4 pill-shaped operator shortcut buttons.
-/// Only used on arithmetic detail pages (Penjumlahan, Pengurangan, etc.).
+// Per-operator badge colors matching AppColors icon* constants.
+const _kOperatorColors = [
+  AppColors.iconAddition,       // '+'
+  AppColors.iconSubtraction,    // '−'
+  AppColors.iconMultiplication, // '×'
+  AppColors.iconDivision,       // '÷'
+];
+
+/// A row of 4 colour-coded circular operator shortcut buttons.
+/// Rendered inside the dark [AppColors.lessonNavBarBg] bar in [RumusScaffold].
 class OperatorTabRow extends StatelessWidget {
   const OperatorTabRow({
     super.key,
@@ -197,17 +208,18 @@ class OperatorTabRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(operators.length, (i) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: _OperatorTab(
-            label: operators[i],
-            onTap: () {
-              // Replace current route to avoid deep stack for operator tabs
-              Navigator.pushReplacementNamed(context, routes[i]);
-            },
-          ),
+        final color = (i < _kOperatorColors.length)
+            ? _kOperatorColors[i]
+            : AppColors.lessonHeaderBg;
+        return _OperatorTab(
+          label: operators[i],
+          bgColor: color,
+          onTap: () {
+            // Replace current route to avoid deep stack for operator tabs
+            Navigator.pushReplacementNamed(context, routes[i]);
+          },
         );
       }),
     );
@@ -215,8 +227,13 @@ class OperatorTabRow extends StatelessWidget {
 }
 
 class _OperatorTab extends StatefulWidget {
-  const _OperatorTab({required this.label, required this.onTap});
+  const _OperatorTab({
+    required this.label,
+    required this.bgColor,
+    required this.onTap,
+  });
   final String label;
+  final Color bgColor;
   final VoidCallback onTap;
 
   @override
@@ -258,10 +275,17 @@ class _OperatorTabState extends State<_OperatorTab>
         onTapCancel: () => _ctrl.forward(),
         child: Container(
           width: 52,
-          height: 40,
+          height: 52,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(20),
+            color: widget.bgColor,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.bgColor.withValues(alpha: 0.35),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Center(
             child: Text(
@@ -269,7 +293,6 @@ class _OperatorTabState extends State<_OperatorTab>
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
-                fontFamily: 'Fredoka One',
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -756,7 +779,7 @@ class TipsBox extends StatelessWidget {
                     fontFamily: 'Fredoka One',
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFFF57F17),
+                    color: AppColors.accentOrangeDark,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -764,7 +787,7 @@ class TipsBox extends StatelessWidget {
                   text,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF6D4C41),
+                    color: AppColors.textDescription,
                     height: 1.4,
                   ),
                 ),
@@ -883,7 +906,7 @@ class VerticalCalcExample extends StatelessWidget {
     const lineStyle = TextStyle(
       fontFamily: 'Fredoka One',
       fontSize: 24,
-      color: kRumusOrange,
+      color: AppColors.lessonHeaderBg,
     );
 
     return Center(

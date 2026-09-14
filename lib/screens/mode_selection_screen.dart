@@ -1,110 +1,124 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 
-/// Screen where the child picks a learning mode: Rumus or Kalkulator.
+/// Home screen — shown immediately when the app starts.
+/// Lets the child pick between "Rumus" (formula) and "Kalkulator" modes.
 class ModeSelectionScreen extends StatelessWidget {
   const ModeSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: const Color(0xFFF5F5F5),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Back button
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: _BackCircleButton(
-                  onTap: () => Navigator.pop(context),
-                ),
-              ),
-              // Header
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
+      backgroundColor: AppColors.screenBg, // #FFFBE7 warm lemon-cream
+      body: Stack(
+        clipBehavior: Clip.hardEdge, // Memotong vector yang keluar layar
+        children: [
+          // ── 1. Vector Biru Kiri Atas ─────────────────────────────
+          Positioned(
+            top: -30,
+            left: -30,
+            child: Image.asset(
+              'assets/vector.png', // TODO: ISI PATH ASSET VECTOR BIRU KIRI DI SINI
+              width: 170,
+              height: 170,
+              fit: BoxFit.contain,
+            ),
+          ),
+
+          // ── 2. Vector Biru Kanan Atas / Tengah ───────────────────
+          Positioned(
+            top: 90,
+            right: -45,
+            child: Image.asset(
+              'assets/vector1.png', // TODO: ISI PATH ASSET VECTOR BIRU KANAN DI SINI
+              width: 130,
+              height: 130,
+              fit: BoxFit.contain,
+            ),
+          ),
+
+          // ── 3. Main content: Title, Subtitle, & Buttons ───────────
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Pilih Mode Belajar',
+                    // Title
+                    const Text(
+                      'Pilih mode\nbelajar kamu',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: 'Fredoka One',
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF37474F),
+                        fontSize: 34,
+                        fontWeight: FontWeight.w900,
+                        height: 1.2,
+                        color: Colors.black, // atau AppColors.textTitle
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 14),
+
+                    // Subtitle
                     Text(
-                      'Mau belajar apa hari ini? 🤩',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF78909C)),
+                      'Pilih fitur sesuai kebutuhanmu!\nTenang, kamu bisa ubah ini\nkapan saja',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700, // atau AppColors.textDescription
+                      ),
                     ),
+                    const SizedBox(height: 48),
+
+                    // Pill buttons
+                    _PillButton(
+                      label: 'Rumus',
+                      onTap: () => Navigator.pushNamed(context, '/rumus'),
+                    ),
+                    const SizedBox(height: 18),
+                    _PillButton(
+                      label: 'Kalkulator',
+                      onTap: () => Navigator.pushNamed(context, '/level'),
+                    ),
+                    // Beri jarak bawah agar tombol tidak tertutup cat head
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              // Mode cards
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      _ModeCard(
-                        emoji: '📐',
-                        title: 'Rumus',
-                        subtitle: 'Pelajari rumus matematika',
-                        color: const Color(0xFF5B8DD9),
-                        shadowColor: const Color(0xFF3A6BC4),
-                        onTap: () => Navigator.pushNamed(context, '/rumus'),
-                      ),
-                      const SizedBox(height: 20),
-                      _ModeCard(
-                        emoji: '🧮',
-                        title: 'Kalkulator',
-                        subtitle: 'Hitung dengan kalkulator pintar',
-                        color: const Color(0xFF5BA55B),
-                        shadowColor: const Color(0xFF3D7A3D),
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/level'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          // ── 4. Cat mascot pinned to bottom (Match Parent Horizontal) ──
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Image.asset(
+              'assets/cat_head.png', // TODO: ISI PATH ASSET CAT HEAD DI SINI
+              width: double.infinity,
+              fit: BoxFit.fitWidth, // Memastikan gambar memenuhi lebar layar secara penuh
+              alignment: Alignment.bottomCenter,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _ModeCard extends StatefulWidget {
-  const _ModeCard({
-    required this.emoji,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.shadowColor,
-    required this.onTap,
-  });
+// ── Orange pill button ───────────────────────────────────────────────────────
 
-  final String emoji;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final Color shadowColor;
+class _PillButton extends StatefulWidget {
+  const _PillButton({required this.label, required this.onTap});
+  final String label;
   final VoidCallback onTap;
 
   @override
-  State<_ModeCard> createState() => _ModeCardState();
+  State<_PillButton> createState() => _PillButtonState();
 }
 
-class _ModeCardState extends State<_ModeCard>
+class _PillButtonState extends State<_PillButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
 
@@ -139,80 +153,22 @@ class _ModeCardState extends State<_ModeCard>
         onTapCancel: () => _ctrl.forward(),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(28),
+          height: 56,
           decoration: BoxDecoration(
-            color: widget.color,
+            color: const Color(0xFFFBA023), // Warna oranye cerah sesuai desain
             borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: widget.shadowColor.withValues(alpha: 0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Row(
-            children: [
-              Text(widget.emoji, style: const TextStyle(fontSize: 56)),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontFamily: 'Fredoka One',
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.subtitle,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
+          child: Center(
+            child: Text(
+              widget.label,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87, // Di desain terlihat teks berwarna gelap/bold
               ),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  color: Colors.white70, size: 22),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BackCircleButton extends StatelessWidget {
-  const _BackCircleButton({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
             ),
-          ],
+          ),
         ),
-        child: const Icon(Icons.arrow_back_rounded,
-            color: Color(0xFF37474F), size: 22),
       ),
     );
   }

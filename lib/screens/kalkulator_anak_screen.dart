@@ -1,18 +1,11 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/theme/app_colors.dart';
 import '../logic/calculator_logic.dart';
 
-/// The "Kalkulator Anak" (Kids Calculator) screen.
-///
-/// Features:
-/// - Large, colorful, kid-friendly button grid (min 72×72 dp)
-/// - Real-time expression display + computed result
-/// - Input validation (blocks invalid sequences)
-/// - Division-by-zero friendly error message
-/// - Star-burst confetti animation on successful calculation
+/// Screen Kalkulator Anak sesuai desain UI.
 class KalkulatorAnakScreen extends StatefulWidget {
   const KalkulatorAnakScreen({super.key});
 
@@ -69,14 +62,13 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // Button actions
+  // Logika Tombol
   // ---------------------------------------------------------------------------
 
   void _onButton(String value) {
     HapticFeedback.lightImpact();
     setState(() {
       if (_justEvaluated && RegExp(r'\d').hasMatch(value)) {
-        // Start fresh after a result if user types a number
         _expression = value;
         _result = '';
         _isError = false;
@@ -85,48 +77,51 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
       }
       _justEvaluated = false;
 
-      if (value == 'C') {
+      // Reset total
+      if (value == 'AC' || value == 'C') {
         _expression = '';
         _result = '';
         _isError = false;
         return;
       }
 
+      // Hapus satu karakter
       if (value == '⌫') {
         if (_expression.isNotEmpty) {
           _expression = _expression.substring(0, _expression.length - 1);
           _isError = false;
-          // Update live result preview
           _updateLiveResult();
         }
         return;
       }
 
-      if (value == '( )') {
-        // Smart parenthesis: add '(' if unbalanced, else try ')'
-        final opens = '('.allMatches(_expression).length;
-        final closes = ')'.allMatches(_expression).length;
-        final last = _expression.isEmpty ? '' : _expression[_expression.length - 1];
-        if (opens == closes || last == '(' || _isOperator(last)) {
-          if (canAppendToken(_expression, '(')) {
-            _expression += '(';
-          }
-        } else {
-          if (canAppendToken(_expression, ')')) {
-            _expression += ')';
-          }
+      // Tombol koma
+      if (value == ',') {
+        if (canAppendToken(_expression, '.')) {
+          _expression += '.';
+          _isError = false;
+          _updateLiveResult();
         }
-        _isError = false;
-        _updateLiveResult();
         return;
       }
 
+      // Tombol 00
+      if (value == '00') {
+        if (_expression.isNotEmpty && canAppendToken(_expression, '0')) {
+          _expression += '00';
+          _isError = false;
+          _updateLiveResult();
+        }
+        return;
+      }
+
+      // Tombol Samadengan
       if (value == '=') {
         _evaluate();
         return;
       }
 
-      // Regular token
+      // Token operator & angka reguler
       if (canAppendToken(_expression, value)) {
         _expression += value;
         _isError = false;
@@ -135,17 +130,12 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     });
   }
 
-  bool _isOperator(String ch) =>
-      ch == '+' || ch == '-' || ch == '×' || ch == '÷';
-
   void _updateLiveResult() {
-    // Show a live preview (greyed out) while typing
     final r = evaluateExpression(_expression);
     if (r is CalcSuccess) {
       _result = r.display;
       _isError = false;
     } else {
-      // Don't show errors during live typing — just clear preview
       _result = '';
     }
   }
@@ -172,24 +162,25 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // Build
+  // Tampilan Layar (Build)
   // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFDCB35), // Warna kuning cerah dasar kalkulator
       body: Stack(
         children: [
-          // Solid background
-          Container(
-            color: const Color(0xFF263238),
-          ),
-
           SafeArea(
             child: Column(
               children: [
                 _buildTopBar(context),
-                Expanded(child: _buildDisplay()),
+                const SizedBox(height: 35), // Ruang ekstra untuk kepala kucing di atas
+                SizedBox(
+                  height: 180, // <-- ATUR TINGGI KOTAK DI SINI (misal: 160 - 190)
+                  child: _buildDisplayWithMascot(),
+                ),
+                const Spacer(), // Mendorong tombol-tombol agar tetap rapi di bagian bawah layar
                 _buildButtonGrid(),
               ],
             ),
@@ -200,11 +191,10 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
             IgnorePointer(
               child: AnimatedBuilder(
                 animation: _starAnim,
-                builder: (context, _) =>
-                    CustomPaint(
-                      size: MediaQuery.of(context).size,
-                      painter: _StarBurstPainter(_starAnim.value),
-                    ),
+                builder: (context, _) => CustomPaint(
+                  size: MediaQuery.of(context).size,
+                  painter: _StarBurstPainter(_starAnim.value),
+                ),
               ),
             ),
         ],
@@ -214,30 +204,49 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back_rounded,
-                  color: Colors.white, size: 20),
+          // Toggle Dark/Light Mode Pill Button
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3AF00),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.black87,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.wb_sunny_rounded,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.nightlight_round,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+              ],
             ),
           ),
-          const SizedBox(width: 12),
-          const Text(
-            '🧮 Kalkulator Anak',
-            style: TextStyle(
-              fontFamily: 'Fredoka One',
-              fontSize: 22,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+
+          // History Icon
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(
+              Icons.history_rounded,
+              color: Colors.black87,
+              size: 28,
             ),
           ),
         ],
@@ -245,131 +254,127 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     );
   }
 
-  Widget _buildDisplay() {
-    return AnimatedBuilder(
-      animation: _shakeAnim,
-      builder: (context, child) {
-        final shake = math.sin(_shakeAnim.value * math.pi * 6) *
-            (_isError ? 10 * (1 - _shakeAnim.value) : 0);
-        return Transform.translate(
-          offset: Offset(shake, 0),
-          child: child,
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF37474F),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: const Color(0xFF455A64),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.end,
+  Widget _buildDisplayWithMascot() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Stack(
+          clipBehavior: Clip.none,
           children: [
-            // Mascot hint when empty
-            if (_expression.isEmpty)
-              const Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('🐱', style: TextStyle(fontSize: 48)),
-                      SizedBox(height: 8),
-                      Text(
-                        'Tekan angka untuk mulai!',
-                        style: TextStyle(
-                          color: Color(0xFF90A4AE),
-                          fontSize: 15,
+            // ── Maskot Kucing Baca Buku ─────────────────────────────
+            Positioned(
+              top: -55, // Mengatur agar kepala kucing muncul di atas kotak kuning
+              left: 28,
+              child: Image.asset(
+                'assets/membaca_buku_belajar_1.png', // TODO: ISI PATH ASSET MASKOT KUCING BACA DI SINI
+                height: 55,
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            // ── Layar Kotak Display Kuning ──────────────────────────
+            Positioned.fill(
+              child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: AnimatedBuilder(
+                  animation: _shakeAnim,
+                  builder: (context, child) {
+                    final shake = math.sin(_shakeAnim.value * math.pi * 6) *
+                        (_isError ? 10 * (1 - _shakeAnim.value) : 0);
+                    return Transform.translate(
+                      offset: Offset(shake, 0),
+                      child: child,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5B800), // Kuning kotak display
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Ekspresi perhitungan
+                        FittedBox(
+                          alignment: Alignment.centerRight,
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _expression.isEmpty ? '0' : _expression,
+                            style: const TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    reverse: true,
-                    child: Text(
-                      _expression,
-                      style: const TextStyle(
-                        fontFamily: 'Fredoka One',
-                        fontSize: 36,
-                        color: Colors.white,
-                        letterSpacing: 1.5,
-                      ),
+                        const SizedBox(height: 8),
+
+                        // Hasil / Error
+                        Text(
+                          _result.isEmpty
+                              ? ''
+                              : (_isError ? _result : _result),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: _isError
+                                ? Colors.red.shade900
+                                : const Color(0xFF6B587B), // Ungu/abu-abu lembut sesuai gambar
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            const SizedBox(height: 8),
-            // Result / error line
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: _result.isEmpty
-                  ? const SizedBox(key: ValueKey('empty'), height: 36)
-                  : Text(
-                      key: ValueKey(_result),
-                      _isError ? _result : '= $_result',
-                      style: TextStyle(
-                        fontFamily: 'Fredoka One',
-                        fontSize: _isError ? 18 : 40,
-                        color: _isError
-                            ? const Color(0xFFFF7043)
-                            : const Color(0xFF69F0AE),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildButtonGrid() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       child: Column(
         children: [
-          _buildRow(['C', '( )', '⌫', '÷'], [
-            _BtnStyle.clear,
-            _BtnStyle.special,
-            _BtnStyle.backspace,
-            _BtnStyle.operator,
+          _buildRow(['⤢', 'AC', '⌫', '÷'], [
+            _BtnStyle.green,
+            _BtnStyle.green,
+            _BtnStyle.green,
+            _BtnStyle.orange,
           ]),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _buildRow(['7', '8', '9', '×'], [
-            _BtnStyle.number,
-            _BtnStyle.number,
-            _BtnStyle.number,
-            _BtnStyle.operator,
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.orange,
           ]),
-          const SizedBox(height: 10),
-          _buildRow(['4', '5', '6', '−'], [
-            _BtnStyle.number,
-            _BtnStyle.number,
-            _BtnStyle.number,
-            _BtnStyle.operator,
+          const SizedBox(height: 12),
+          _buildRow(['4', '5', '6', '-'], [
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.orange,
           ]),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _buildRow(['1', '2', '3', '+'], [
-            _BtnStyle.number,
-            _BtnStyle.number,
-            _BtnStyle.number,
-            _BtnStyle.operator,
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.orange,
           ]),
-          const SizedBox(height: 10),
-          _buildLastRow(),
+          const SizedBox(height: 12),
+          _buildRow(['0', '00', ',', '='], [
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.white,
+            _BtnStyle.coral, // Tombol samadengan oranye coral/salmon
+          ]),
         ],
       ),
     );
@@ -377,57 +382,26 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
 
   Widget _buildRow(List<String> labels, List<_BtnStyle> styles) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(labels.length, (i) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(left: i == 0 ? 0 : 5),
-            child: _CalcButton(
-              label: labels[i],
-              style: styles[i],
-              onTap: () => _onButton(
-                // Normalize display chars to internal tokens
-                labels[i] == '−' ? '-' : labels[i],
-              ),
-            ),
-          ),
+        return _CalcRoundButton(
+          label: labels[i],
+          style: styles[i],
+          onTap: () => _onButton(labels[i]),
         );
       }),
-    );
-  }
-
-  Widget _buildLastRow() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: _CalcButton(
-            label: '0',
-            style: _BtnStyle.number,
-            onTap: () => _onButton('0'),
-          ),
-        ),
-        const SizedBox(width: 5),
-        Expanded(
-          flex: 1,
-          child: _CalcButton(
-            label: '=',
-            style: _BtnStyle.equals,
-            onTap: () => _onButton('='),
-          ),
-        ),
-      ],
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Button styles
+// Gaya Tombol Bulat Lingkaran
 // ---------------------------------------------------------------------------
 
-enum _BtnStyle { number, operator, equals, clear, backspace, special }
+enum _BtnStyle { white, green, orange, coral }
 
-class _CalcButton extends StatefulWidget {
-  const _CalcButton({
+class _CalcRoundButton extends StatefulWidget {
+  const _CalcRoundButton({
     required this.label,
     required this.style,
     required this.onTap,
@@ -438,10 +412,10 @@ class _CalcButton extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_CalcButton> createState() => _CalcButtonState();
+  State<_CalcRoundButton> createState() => _CalcRoundButtonState();
 }
 
-class _CalcButtonState extends State<_CalcButton>
+class _CalcRoundButtonState extends State<_CalcRoundButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
 
@@ -465,32 +439,31 @@ class _CalcButtonState extends State<_CalcButton>
 
   Color get _bgColor {
     switch (widget.style) {
-      case _BtnStyle.number:
-        return const Color(0xFF37474F);
-      case _BtnStyle.operator:
-        return const Color(0xFFD4845A);
-      case _BtnStyle.equals:
-        return const Color(0xFF4CAF50);
-      case _BtnStyle.clear:
-        return const Color(0xFFBF5350);
-      case _BtnStyle.backspace:
-        return const Color(0xFFB8860B);
-      case _BtnStyle.special:
-        return const Color(0xFF546E7A);
+      case _BtnStyle.white:
+        return const Color(0xFFFAFAFA);
+      case _BtnStyle.green:
+        return const Color(0xFF28C734);
+      case _BtnStyle.orange:
+        return const Color(0xFFFB9403);
+      case _BtnStyle.coral:
+        return const Color(0xFFFF6F37);
     }
   }
 
   Color get _textColor {
     switch (widget.style) {
-      case _BtnStyle.number:
-        return Colors.white;
+      case _BtnStyle.white:
+        return Colors.black;
       default:
-        return Colors.white;
+        return Colors.black87;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Tombol responsif berbentuk lingkaran sempurna
+    final size = (MediaQuery.of(context).size.width - 32 - 36) / 4;
+
     return ScaleTransition(
       scale: _ctrl,
       child: GestureDetector(
@@ -501,13 +474,14 @@ class _CalcButtonState extends State<_CalcButton>
         },
         onTapCancel: () => _ctrl.forward(),
         child: Container(
-          height: 72,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             color: _bgColor,
-            borderRadius: BorderRadius.circular(18),
+            shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -523,22 +497,24 @@ class _CalcButtonState extends State<_CalcButton>
 
   Widget _buildLabel() {
     if (widget.label == '⌫') {
-      return const Icon(Icons.backspace_rounded, color: Colors.white, size: 28);
+      return const Icon(Icons.backspace_outlined, color: Colors.black87, size: 26);
+    }
+    if (widget.label == '⤢') {
+      return const Icon(Icons.open_in_full_rounded, color: Colors.black87, size: 24);
     }
     return Text(
       widget.label,
       style: TextStyle(
-        fontFamily: 'Fredoka One',
-        fontSize: widget.label.length > 1 ? 22 : 28,
+        fontSize: widget.label.length > 1 ? 24 : 30,
         color: _textColor,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Star-burst confetti painter
+// Animasi Confetti Bintang
 // ---------------------------------------------------------------------------
 
 class _StarBurstPainter extends CustomPainter {
@@ -558,12 +534,12 @@ class _StarBurstPainter extends CustomPainter {
   );
 
   static const _kColors = [
-    Color(0xFFFFD700), // gold
-    Color(0xFFFF4081), // pink
-    Color(0xFF40C4FF), // sky blue
-    Color(0xFF69F0AE), // green
-    Color(0xFFFF6D00), // orange
-    Color(0xFFEA80FC), // purple
+    Color(0xFFFFD700),
+    Color(0xFFFF4081),
+    Color(0xFF40C4FF),
+    Color(0xFF69F0AE),
+    Color(0xFFFF6D00),
+    Color(0xFFEA80FC),
   ];
 
   @override

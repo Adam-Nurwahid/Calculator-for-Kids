@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'screens/start_screen.dart';
+import 'core/theme/app_colors.dart';
+import 'core/theme/app_fonts.dart';
 import 'screens/mode_selection_screen.dart';
 import 'screens/level_selection_screen.dart';
 import 'screens/kalkulator_anak_screen.dart';
@@ -48,9 +49,8 @@ class KalkulatorKidsApp extends StatelessWidget {
       theme: _buildTheme(),
       initialRoute: '/',
       routes: {
-        // ── Existing routes ─────────────────────────────────────────────
-        '/': (context) => const StartScreen(),
-        '/mode': (context) => const ModeSelectionScreen(),
+        // ── Root: goes straight to mode selection (no splash/start screen) ─
+        '/': (context) => const ModeSelectionScreen(),
         '/level': (context) => const LevelSelectionScreen(),
         '/kalkulator-anak': (context) => const KalkulatorAnakScreen(),
 
@@ -85,20 +85,27 @@ class KalkulatorKidsApp extends StatelessWidget {
   }
 
   ThemeData _buildTheme() {
-    return ThemeData(
+    // Apply Fredoka One globally via google_fonts textTheme so every Text widget
+    // inherits it automatically. Individual screens can still override per-widget.
+    final base = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6C63FF),
-        brightness: Brightness.dark,
+        seedColor: AppColors.calcBackground,
+        brightness: Brightness.light,
       ),
-      fontFamily: 'Fredoka One',
-      scaffoldBackgroundColor: const Color(0xFF1A1A2E),
+      scaffoldBackgroundColor: AppColors.screenBg,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: CupertinoPageTransitionsBuilder(),
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
           TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
         },
+      ),
+    );
+    return base.copyWith(
+      textTheme: AppFonts.textTheme.apply(
+        bodyColor: AppColors.textTitle,
+        displayColor: AppColors.textTitle,
       ),
     );
   }

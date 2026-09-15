@@ -1,79 +1,69 @@
 // lib/screens/rumus/rumus_menu_screen.dart
-//
-// 3-tier material-selection menu for the Rumus (formula learning) feature.
-//
-// Layout per page:
-//  • Orange rounded card filling the screen
-//  • Mascot emoji + tier title at top
-//  • "Pilih Materi Pembelajaranmu" heading
-//  • Vertical list of MateriPillButton items
-//  • Pagination dots (3 dots)
-//  • Left/right arrow nav
-//  • Footer note
 
 import 'package:flutter/material.dart';
-import '../../widgets/rumus_widgets.dart';
 
-// ─── Data model ──────────────────────────────────────────────────────────────
+// ─── Data Model ──────────────────────────────────────────────────────────────
 
 class _TierData {
   const _TierData({
     required this.label,
-    required this.mascot,
     required this.items,
   });
+
   final String label;
-  final String mascot;
   final List<_MateriItem> items;
 }
 
 class _MateriItem {
-  const _MateriItem({required this.emoji, required this.label, required this.route});
-  final String emoji;
+  const _MateriItem({required this.label, required this.route});
   final String label;
   final String route;
 }
 
-const _tiers = [
+// ─── 3 Halaman Tier Data ─────────────────────────────────────────────────────
+
+const List<_TierData> _tiers = [
+  // Halaman 1: Rumus (Anak)
   _TierData(
     label: 'Rumus (Anak)',
-    mascot: '🐣',
     items: [
-      _MateriItem(emoji: '➕', label: 'Penjumlahan',  route: '/rumus/anak/penjumlahan'),
-      _MateriItem(emoji: '➖', label: 'Pengurangan',  route: '/rumus/anak/pengurangan'),
-      _MateriItem(emoji: '✖️', label: 'Perkalian',    route: '/rumus/anak/perkalian'),
-      _MateriItem(emoji: '➗', label: 'Pembagian',    route: '/rumus/anak/pembagian'),
-      _MateriItem(emoji: '🔢', label: 'Tanda Kurung', route: '/rumus/anak/tanda-kurung'),
-      _MateriItem(emoji: '📐', label: 'Bangun Datar', route: '/rumus/anak/bangun-datar'),
+      _MateriItem(label: 'Penjumlahan', route: '/rumus/anak/penjumlahan'),
+      _MateriItem(label: 'Pengurangan', route: '/rumus/anak/pengurangan'),
+      _MateriItem(label: 'Perkalian', route: '/rumus/anak/perkalian'),
+      _MateriItem(label: 'Pembagian', route: '/rumus/anak/pembagian'),
+      _MateriItem(label: 'Tanda Kurung', route: '/rumus/anak/tanda-kurung'),
+      _MateriItem(label: 'Bangun Datar', route: '/rumus/anak/bangun-datar'),
     ],
   ),
+
+  // Halaman 2: Rumus (Umum 1)
   _TierData(
     label: 'Rumus (Umum 1)',
-    mascot: '🦊',
     items: [
-      _MateriItem(emoji: '½',  label: 'Pecahan',         route: '/rumus/umum1/pecahan'),
-      _MateriItem(emoji: '²',  label: 'Pangkat',          route: '/rumus/umum1/pangkat'),
-      _MateriItem(emoji: '%',  label: 'Konversi Persen',  route: '/rumus/umum1/konversi-persen'),
-      _MateriItem(emoji: '🎲', label: 'Peluang',          route: '/rumus/umum1/peluang'),
-      _MateriItem(emoji: '🔠', label: 'Aljabar',          route: '/rumus/umum1/aljabar'),
-      _MateriItem(emoji: '📊', label: 'Statistika',       route: '/rumus/umum1/statistika'),
+      _MateriItem(label: 'Pecahan', route: '/rumus/umum1/pecahan'),
+      _MateriItem(label: 'Pangkat', route: '/rumus/umum1/pangkat'),
+      _MateriItem(label: 'Konversi Persen', route: '/rumus/umum1/konversi-persen'),
+      _MateriItem(label: 'Peluang', route: '/rumus/umum1/peluang'),
+      _MateriItem(label: 'Aljabar', route: '/rumus/umum1/aljabar'),
+      _MateriItem(label: 'Statistika', route: '/rumus/umum1/statistika'),
     ],
   ),
+
+  // Halaman 3: Rumus (Umum 2)
   _TierData(
     label: 'Rumus (Umum 2)',
-    mascot: '🦅',
     items: [
-      _MateriItem(emoji: '📦', label: 'Bangun Ruang',     route: '/rumus/umum2/bangun-ruang'),
-      _MateriItem(emoji: '📐', label: 'Trigonometri',     route: '/rumus/umum2/trigonometri'),
-      _MateriItem(emoji: 'log', label: 'Logaritma',       route: '/rumus/umum2/logaritma'),
-      _MateriItem(emoji: '√',  label: 'Akar Kuadrat',     route: '/rumus/umum2/akar-kuadrat'),
-      _MateriItem(emoji: '°',  label: 'Deg / Rad',        route: '/rumus/umum2/deg-rad'),
-      _MateriItem(emoji: '🔢', label: 'Barisan & Deret',  route: '/rumus/umum2/barisan-deret'),
+      _MateriItem(label: 'Bangun ruang', route: '/rumus/umum2/bangun-ruang'),
+      _MateriItem(label: 'Trigonometri', route: '/rumus/umum2/trigonometri'),
+      _MateriItem(label: 'Logaritma', route: '/rumus/umum2/logaritma'),
+      _MateriItem(label: 'Akar Kuadrat', route: '/rumus/umum2/akar-kuadrat'),
+      _MateriItem(label: 'Deg/Rad', route: '/rumus/umum2/deg-rad'),
+      _MateriItem(label: 'Barisan & Deret', route: '/rumus/umum2/barisan-deret'),
     ],
   ),
 ];
 
-// ─── Screen ──────────────────────────────────────────────────────────────────
+// ─── Screen Utama ────────────────────────────────────────────────────────────
 
 class RumusMenuScreen extends StatefulWidget {
   const RumusMenuScreen({super.key});
@@ -85,6 +75,9 @@ class RumusMenuScreen extends StatefulWidget {
 class _RumusMenuScreenState extends State<RumusMenuScreen> {
   late final PageController _pageCtrl;
   int _currentPage = 0;
+
+  // Path aset maskot kucing
+  final String _mascotAsset = 'assets/membaca_buku_belajar_2.png';
 
   @override
   void initState() {
@@ -102,187 +95,258 @@ class _RumusMenuScreenState extends State<RumusMenuScreen> {
     final target = page.clamp(0, _tiers.length - 1);
     _pageCtrl.animateToPage(
       target,
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 320),
       curve: Curves.easeInOut,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    const Color bgCream = Color(0xFFFBF4E4);
+    const Color cardOrange = Color(0xFFFF941A);
+    const Color arrowColor = Color(0xFFD65C00);
+
     return Scaffold(
-      backgroundColor: kRumusBg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Back button row ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+      backgroundColor: bgCream,
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                const SizedBox(height: 18),
+
+                // 1. Maskot Kucing (Statis di atas card)
+                SizedBox(
+                  height: 135,
+                  child: Image.asset(
+                    _mascotAsset,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+
+                // 2. Kontainer Oranye Utama
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: cardOrange,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(36),
+                        topRight: Radius.circular(36),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: kRumusTextDark, size: 22),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Text(
-                    'Pilih Materi',
-                    style: TextStyle(
-                      fontFamily: 'Fredoka One',
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: kRumusTextDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // ── Paged card area ─────────────────────────────────────────
-            Expanded(
-              child: PageView.builder(
-                controller: _pageCtrl,
-                onPageChanged: (p) => setState(() => _currentPage = p),
-                itemCount: _tiers.length,
-                itemBuilder: (_, i) => _TierPage(tier: _tiers[i]),
-              ),
-            ),
-
-            // ── Bottom nav area ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(28, 10, 28, 16),
-              child: Column(
-                children: [
-                  PageDots(current: _currentPage, total: _tiers.length),
-                  const SizedBox(height: 14),
-                  NavArrows(
-                    leftEnabled: _currentPage > 0,
-                    rightEnabled: _currentPage < _tiers.length - 1,
-                    onLeft: () => _goTo(_currentPage - 1),
-                    onRight: () => _goTo(_currentPage + 1),
-                    center: Column(
+                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
+                    child: Column(
                       children: [
-                        Text(
-                          _tiers[_currentPage].label,
-                          style: const TextStyle(
+                        // Judul (Statis, tidak ikut tergeser)
+                        const Text(
+                          'Pilih Materi\nPembelajaranmu',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
                             fontFamily: 'Fredoka One',
-                            fontSize: 15,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: kRumusTextDark,
+                            color: Colors.black,
+                            height: 1.25,
                           ),
                         ),
+                        const SizedBox(height: 20),
+
+                        // 3. PageView HANYA untuk Pilihan Menu
+                        Expanded(
+                          child: PageView.builder(
+                            controller: _pageCtrl,
+                            onPageChanged: (index) {
+                              setState(() => _currentPage = index);
+                            },
+                            itemCount: _tiers.length,
+                            itemBuilder: (context, pageIndex) {
+                              final tier = _tiers[pageIndex];
+                              return ListView.separated(
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: tier.items.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: (ctx, itemIndex) {
+                                  final item = tier.items[itemIndex];
+                                  return _MaterialButton(
+                                    label: item.label,
+                                    onTap: () => Navigator.pushNamed(ctx, item.route),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // 4. Bagian Bawah: Indikator 3 Dots + Panah Navigasi Aktif
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // 3 Dots di tengah (Anak, Umum 1, Umum 2)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(_tiers.length, (index) {
+                                final isActive = index == _currentPage;
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: isActive
+                                        ? arrowColor
+                                        : arrowColor.withValues(alpha: 0.35),
+                                    shape: BoxShape.circle,
+                                  ),
+                                );
+                              }),
+                            ),
+
+                            // Panah Kiri dan Kanan yang Berfungsi
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: Icon(
+                                      Icons.arrow_left_rounded,
+                                      size: 38,
+                                      color: _currentPage > 0
+                                          ? arrowColor
+                                          : arrowColor.withValues(alpha: 0.25),
+                                    ),
+                                    onPressed: _currentPage > 0
+                                        ? () => _goTo(_currentPage - 1)
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: Icon(
+                                      Icons.arrow_right_rounded,
+                                      size: 38,
+                                      color: _currentPage < _tiers.length - 1
+                                          ? arrowColor
+                                          : arrowColor.withValues(alpha: 0.25),
+                                    ),
+                                    onPressed: _currentPage < _tiers.length - 1
+                                        ? () => _goTo(_currentPage + 1)
+                                        : null,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Footer Text
+                        const Text(
+                          'Materi bisa diubah kapan pun',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF5A3E22),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Materi bisa diubah kapan pun',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: kRumusTextMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Single tier page ────────────────────────────────────────────────────────
-
-class _TierPage extends StatelessWidget {
-  const _TierPage({required this.tier});
-  final _TierData tier;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-        decoration: BoxDecoration(
-          color: kRumusOrange,
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: kRumusOrangeDark.withValues(alpha: 0.30),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Mascot + tier label
-            Row(
-              children: [
-                Text(tier.mascot,
-                    style: const TextStyle(fontSize: 40)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    tier.label,
-                    style: const TextStyle(
-                      fontFamily: 'Fredoka One',
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            const Text(
-              'Pilih Materi Pembelajaranmu',
-              style: TextStyle(
-                fontFamily: 'Fredoka One',
-                fontSize: 22,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          ),
+
+          // ── Tombol Back (Kiri Atas) ──────────────────────────────────────
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16, top: 12),
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Color(0xFF333333),
+                    size: 22,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 14),
-            // Pill buttons list
-            Expanded(
-              child: ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: tier.items.length,
-                itemBuilder: (ctx, i) {
-                  final item = tier.items[i];
-                  return MateriPillButton(
-                    emoji: item.emoji,
-                    label: item.label,
-                    onTap: () =>
-                        Navigator.pushNamed(ctx, item.route),
-                  );
-                },
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Tombol Pill Materi ───────────────────────────────────────────────────────
+
+class _MaterialButton extends StatelessWidget {
+  const _MaterialButton({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF9E8),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 4,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_right_rounded,
+                  color: Colors.black,
+                  size: 26,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

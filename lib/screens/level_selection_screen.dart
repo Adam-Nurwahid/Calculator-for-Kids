@@ -95,21 +95,10 @@ class LevelSelectionScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         _PillButton(
                           label: 'Umum',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  '🚧 Segera hadir! Tunggu ya! 🌟',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                backgroundColor: AppColors.calcButtonOrange,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            '/kalkulator-umum',
+                          ),
                         ),
                       ],
                     ),

@@ -6,6 +6,7 @@ import 'core/theme/app_fonts.dart';
 import 'screens/mode_selection_screen.dart';
 import 'screens/level_selection_screen.dart';
 import 'screens/kalkulator_anak_screen.dart';
+import 'screens/kalkulator_umum_screen.dart';
 
 // Rumus feature — menu
 import 'screens/rumus/rumus_menu_screen.dart';
@@ -53,6 +54,7 @@ class KalkulatorKidsApp extends StatelessWidget {
         '/': (context) => const ModeSelectionScreen(),
         '/level': (context) => const LevelSelectionScreen(),
         '/kalkulator-anak': (context) => const KalkulatorAnakScreen(),
+        '/kalkulator-umum': (context) => const KalkulatorUmumScreen(),
 
         // ── Rumus menu ──────────────────────────────────────────────────
         '/rumus': (context) => const RumusMenuScreen(),

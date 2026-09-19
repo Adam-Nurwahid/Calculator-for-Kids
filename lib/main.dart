@@ -12,14 +12,11 @@ import 'screens/kalkulator_umum_screen.dart';
 import 'screens/rumus/rumus_menu_screen.dart';
 
 // Rumus — Anak tier detail pages
-import 'screens/rumus/detail/anak/penjumlahan_screen.dart';
-import 'screens/rumus/detail/anak/pengurangan_screen.dart';
-import 'screens/rumus/detail/anak/perkalian_screen.dart';
-import 'screens/rumus/detail/anak/pembagian_screen.dart';
-import 'screens/rumus/detail/anak/tanda_kurung_screen.dart';
-import 'screens/rumus/detail/anak/bangun_datar_screen.dart';
+import 'screens/rumus/detail/anak/basic_formulas_screen.dart';
 
 // Rumus — Umum 1 tier detail pages
+// Rumus — Umum 1 tier detail pages
+import 'screens/rumus/detail/umum1/advanced_formulas_screen.dart';
 import 'screens/rumus/detail/umum1/pecahan_screen.dart';
 import 'screens/rumus/detail/umum1/pangkat_screen.dart';
 import 'screens/rumus/detail/umum1/konversi_persen_screen.dart';
@@ -60,23 +57,21 @@ class KalkulatorKidsApp extends StatelessWidget {
         '/rumus': (context) => const RumusMenuScreen(),
 
         // ── Rumus Anak tier ─────────────────────────────────────────────
-        '/rumus/anak/penjumlahan':  (context) => const PenjumlahanScreen(),
-        '/rumus/anak/pengurangan':  (context) => const PenguranganScreen(),
-        '/rumus/anak/perkalian':    (context) => const PerkalianScreen(),
-        '/rumus/anak/pembagian':    (context) => const PembagianScreen(),
-        '/rumus/anak/tanda-kurung': (context) => const TandaKurungScreen(),
-        '/rumus/anak/bangun-datar': (context) => const BangunDatarScreen(),
+        '/rumus/anak/penjumlahan':  (context) => const BasicFormulasScreen(initialIndex: 0),
+        '/rumus/anak/pengurangan':  (context) => const BasicFormulasScreen(initialIndex: 1),
+        '/rumus/anak/perkalian':    (context) => const BasicFormulasScreen(initialIndex: 2),
+        '/rumus/anak/pembagian':    (context) => const BasicFormulasScreen(initialIndex: 3),
+        '/rumus/anak/tanda-kurung': (context) => const BasicFormulasScreen(initialIndex: 4),
+        '/rumus/anak/bangun-datar': (context) => const BasicFormulasScreen(initialIndex: 5),
 
-        // ── Rumus Umum 1 tier ────────────────────────────────────────────
-        '/rumus/umum1/pecahan':        (context) => const PecahanScreen(),
-        '/rumus/umum1/pangkat':        (context) => const PangkatScreen(),
-        '/rumus/umum1/konversi-persen':(context) => const KonversiPersenScreen(),
-        '/rumus/umum1/peluang':        (context) => const PeluangScreen(),
-        '/rumus/umum1/aljabar':        (context) => const AljabarScreen(),
-        '/rumus/umum1/statistika':     (context) => const StatistikaScreen(),
-
-        // ── Rumus Umum 2 tier ────────────────────────────────────────────
-        '/rumus/umum2/bangun-ruang':   (context) => const BangunRuangScreen(),
+        // ── Rumus Umum 1 & 2 (Matematika Tingkat Lanjut) ─────────────────
+        '/rumus/umum1/pecahan':        (context) => const AdvancedFormulasScreen(initialIndex: 0),
+        '/rumus/umum1/pangkat':        (context) => const AdvancedFormulasScreen(initialIndex: 1),
+        '/rumus/umum1/konversi-persen':(context) => const AdvancedFormulasScreen(initialIndex: 2),
+        '/rumus/umum1/peluang':        (context) => const AdvancedFormulasScreen(initialIndex: 3),
+        '/rumus/umum1/aljabar':        (context) => const AdvancedFormulasScreen(initialIndex: 4),
+        '/rumus/umum1/statistika':     (context) => const AdvancedFormulasScreen(initialIndex: 5),
+        '/rumus/umum2/bangun-ruang':   (context) => const AdvancedFormulasScreen(initialIndex: 6),
         '/rumus/umum2/trigonometri':   (context) => const TrigonometriScreen(),
         '/rumus/umum2/logaritma':      (context) => const LogaritmaScreen(),
         '/rumus/umum2/akar-kuadrat':   (context) => const AkarKuadratScreen(),

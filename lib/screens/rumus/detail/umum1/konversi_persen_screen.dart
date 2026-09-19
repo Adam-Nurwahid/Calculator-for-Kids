@@ -10,11 +10,9 @@ class KonversiPersenScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Umum 1',
-      topicTitle: 'Konversi Persen',
-      mascotEmoji: '🦊',
-      body: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const RumusTopicDefinition(

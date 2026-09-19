@@ -1,6 +1,4 @@
 // lib/screens/rumus/detail/anak/penjumlahan_screen.dart
-//
-// Detail page: Penjumlahan (Addition) — Rumus Anak tier.
 
 import 'package:flutter/material.dart';
 import '../../../../widgets/rumus_widgets.dart';
@@ -10,81 +8,68 @@ class PenjumlahanScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Dasar',
-      topicTitle: 'Penjumlahan',
-      mascotEmoji: '➕',
-      headerExtra: OperatorTabRow(
-        operators: const ['+', '−', '×', '÷'],
-        routes: const [
-          '/rumus/anak/penjumlahan',
-          '/rumus/anak/pengurangan',
-          '/rumus/anak/perkalian',
-          '/rumus/anak/pembagian',
-        ],
-      ),
-      body: Column(
+    return const SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Definisi ──────────────────────────────────────────────────
-          const RumusTopicDefinition(
-            emoji: '➕',
+          // ── Topic Header (Title & Subtitle) ───────────────────────────
+          RumusTopicHeader(
             title: 'Penjumlahan',
-            definition:
-                'Operasi menggabungkan dua bilangan atau lebih menjadi satu '
-                'bilangan yang disebut jumlah (sum).',
+            subtitle: 'Menggabungkan nilai dari dua kelompok atau lebih.',
           ),
 
-          // ── Sifat ────────────────────────────────────────────────────
-          const SectionTitle('📋 Sifat Penjumlahan'),
-          const SifatItem(
+          // ── Sifat Section ──────────────────────────────────────────────
+          SectionTitle('Sifat:'),
+          NumberedPropertyItem(
             number: 1,
-            title: 'Komutatif',
-            description: 'Urutan bilangan tidak mengubah hasil.',
-            example: 'a + b = b + a\n3 + 5 = 5 + 3 = 8',
+            title: 'Bisa Ditukar (Komutatif)',
+            description: 'Urutan penjumlahan tidak mengubah hasil akhirnya.',
+            example: 'a + b = b + a  →  3 + 5 = 5 + 3 = 8',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 2,
-            title: 'Asosiatif',
-            description: 'Pengelompokan bilangan tidak mengubah hasil.',
-            example: '(2 + 3) + 4 = 2 + (3 + 4) = 9',
+            title: 'Bisa Dikelompokkan (Asosiatif)',
+            description: 'Cara pengelompokan angka tidak mengubah hasil akhir.',
+            example: '(a + b) + c = a + (b + c)  →  (2 + 3) + 4 = 2 + (3 + 4) = 9',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 3,
-            title: 'Unsur Identitas (Nol)',
-            description: 'Menjumlahkan dengan 0 tidak mengubah bilangan.',
-            example: '7 + 0 = 7',
-          ),
-          const SifatItem(
-            number: 4,
-            title: 'Tertutup',
+            title: 'Ditambah Nol (Unsur Identitas)',
             description:
-                'Hasil penjumlahan dua bilangan bulat selalu bilangan bulat.',
+                'Menjumlahkan bilangan berapa pun dengan 0 menghasilkan bilangan itu sendiri.',
+            example: 'a + 0 = a  →  7 + 0 = 7',
+          ),
+          NumberedPropertyItem(
+            number: 4,
+            title: 'Hasil Selalu Bilangan Bulat (Tertutup)',
+            description:
+                'Hasil penjumlahan dua bilangan bulat pasti bilangan bulat juga.',
             example: '4 + 6 = 10  ✅',
           ),
 
-          // ── Contoh ───────────────────────────────────────────────────
-          ContohBox(
-            title: 'Contoh Perhitungan',
-            content: const VerticalCalcExample(
-              top: '247',
-              operator: '+',
-              bottom: '138',
-              result: '385',
-            ),
+          // ── Math Calculation Section ──────────────────────────────────
+          SectionTitle('Contoh Perhitungan:'),
+          VerticalMathCalculation(
+            topNumber: '114',
+            bottomNumber: '76',
+            operator: '+',
+            resultNumber: '190',
+            note: 'Jumlahkan dari kolom satuan (kanan) ke puluhan dan ratusan (kiri).',
+          ),
+          SizedBox(height: 16),
+
+          // ── Formula Card ──────────────────────────────────────────────
+          FormulaCard(
+            label: 'RUMUS PENJUMLAHAN',
+            formula: 'a + b = Jumlah Total',
           ),
 
-          // ── Rumus ────────────────────────────────────────────────────
-          const SectionTitle('📐 Rumus'),
-          const FormulaCard(
-            label: 'PENJUMLAHAN',
-            formula: 'a + b = jumlah',
-          ),
-
-          // ── Tips ─────────────────────────────────────────────────────
-          const TipsBox(
-            text: 'Kamu bisa menjumlahkan dari yang paling mudah dulu!\n'
-                'Contoh: 48 + 37 → (48 + 2) + 35 = 50 + 35 = 85  🎉',
+          // ── Bottom Tips Card ──────────────────────────────────────────
+          RumusTipsCard(
+            tipText:
+                'Kamu bisa menghitung dari angka puluhan dulu, lalu tambahkan satuannya '
+                'agar lebih cepat dan mudah! Contoh: 48 + 37 → (48 + 2) + 35 = 50 + 35 = 85 🎉',
           ),
         ],
       ),

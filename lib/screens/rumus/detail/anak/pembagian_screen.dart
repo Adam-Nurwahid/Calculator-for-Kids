@@ -1,6 +1,4 @@
 // lib/screens/rumus/detail/anak/pembagian_screen.dart
-//
-// Detail page: Pembagian (Division) — Rumus Anak tier.
 
 import 'package:flutter/material.dart';
 import '../../../../widgets/rumus_widgets.dart';
@@ -10,160 +8,90 @@ class PembagianScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Dasar',
-      topicTitle: 'Pembagian',
-      mascotEmoji: '➗',
-      headerExtra: OperatorTabRow(
-        operators: const ['+', '−', '×', '÷'],
-        routes: const [
-          '/rumus/anak/penjumlahan',
-          '/rumus/anak/pengurangan',
-          '/rumus/anak/perkalian',
-          '/rumus/anak/pembagian',
-        ],
-      ),
-      body: Column(
+    return const SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Definisi ──────────────────────────────────────────────────
-          const RumusTopicDefinition(
-            emoji: '➗',
+          // ── Topic Header (Title & Subtitle) ───────────────────────────
+          RumusTopicHeader(
             title: 'Pembagian',
-            definition:
-                'Membagi suatu bilangan menjadi beberapa bagian yang sama besar. '
-                'Kebalikan (invers) dari perkalian.',
+            subtitle:
+                'Membagi suatu bilangan menjadi beberapa bagian yang sama besar.',
           ),
 
-          // ── Sifat ────────────────────────────────────────────────────
-          const SectionTitle('📋 Sifat Pembagian'),
-          const SifatItem(
+          // ── Sifat Section ──────────────────────────────────────────────
+          SectionTitle('Sifat:'),
+          NumberedPropertyItem(
             number: 1,
-            title: 'Tidak Komutatif',
-            description: 'Urutan PENTING — tidak bisa dibalik.',
+            title: 'Tidak Bisa Ditukar (Tidak Komutatif)',
+            description: 'Urutan angka dalam pembagian sangat penting.',
             example: '12 ÷ 4 = 3, tapi 4 ÷ 12 ≠ 3',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 2,
-            title: 'Tidak Asosiatif',
-            description: 'Pengelompokan mempengaruhi hasil.',
+            title: 'Tidak Bisa Dikelompokkan (Tidak Asosiatif)',
+            description: 'Pengelompokan kurung mempengaruhi hasil.',
             example: '(24 ÷ 6) ÷ 2 = 2 ≠ 24 ÷ (6 ÷ 2) = 8',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 3,
-            title: 'Identitas (Satu)',
-            description: 'Membagi dengan 1 menghasilkan bilangan itu sendiri.',
-            example: '15 ÷ 1 = 15',
+            title: 'Dibagi Satu',
+            description:
+                'Membagi bilangan dengan 1 menghasilkan bilangan itu sendiri.',
+            example: 'a ÷ 1 = a  →  15 ÷ 1 = 15',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 4,
-            title: 'Bilangan Dibagi Dirinya Sendiri = 1',
-            description: 'Pembagian suatu bilangan dengan dirinya = 1.',
-            example: '7 ÷ 7 = 1',
+            title: 'Dibagi Diri Sendiri',
+            description:
+                'Pembagian bilangan dengan dirinya sendiri selalu menghasilkan 1.',
+            example: 'a ÷ a = 1  →  7 ÷ 7 = 1',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 5,
-            title: 'Tidak Bisa Bagi Nol',
-            description: 'Membagi bilangan apapun dengan 0 tidak terdefinisi!',
-            example: '5 ÷ 0 = ❌ Tidak boleh!',
+            title: 'Tidak Boleh Bagi Nol',
+            description:
+                'Membagi bilangan apa pun dengan 0 tidak terdefinisi!',
+            example: '5 ÷ 0 = ❌ Tidak terdefinisi',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 6,
-            title: 'Hubungan dengan Perkalian',
-            description: 'Pembagian adalah kebalikan perkalian.',
+            title: 'Kebalikan Perkalian',
+            description: 'Pembagian adalah operasi invers dari perkalian.',
             example: 'Jika 6 × 4 = 24, maka 24 ÷ 4 = 6',
           ),
 
-          // ── Contoh ───────────────────────────────────────────────────
-          ContohBox(
-            title: 'Contoh Pembagian Panjang',
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '84 ÷ 4 = ?',
-                  style: TextStyle(
-                    fontFamily: 'Fredoka One',
-                    fontSize: 18,
-                    color: kRumusTextDark,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _DivisionStep(step: 1, text: '8 ÷ 4 = 2  (puluhan)'),
-                _DivisionStep(step: 2, text: '4 ÷ 4 = 1  (satuan)'),
-                const SizedBox(height: 4),
-                const Text(
-                  '84 ÷ 4 = 21 ✅',
-                  style: TextStyle(
-                    fontFamily: 'Fredoka One',
-                    fontSize: 18,
-                    color: Color(0xFF2E7D32),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          // ── Math Calculation Section (Porogapit) ──────────────────────
+          SectionTitle('Contoh Perhitungan Porogapit:'),
+          DivisionStepWidget(
+            dividend: '84',
+            divisor: '4',
+            quotient: '21',
+            steps: [
+              'Bagi angka puluhan pertama: 8 ÷ 4 = 2 (tulis 2 di atas)',
+              'Bagi angka satuan berikutnya: 4 ÷ 4 = 1 (tulis 1 di atas)',
+              'Hasil akhir porogapit: 84 ÷ 4 = 21 ✅',
+            ],
           ),
+          SizedBox(height: 16),
 
-          // ── Rumus ────────────────────────────────────────────────────
-          const SectionTitle('📐 Rumus'),
-          const FormulaCard(
-            label: 'PEMBAGIAN',
-            formula: 'a ÷ b = hasil bagi   (b ≠ 0)',
+          // ── Formula Cards ─────────────────────────────────────────────
+          FormulaCard(
+            label: 'RUMUS PEMBAGIAN',
+            formula: 'a ÷ b = Hasil Bagi   (b ≠ 0)',
           ),
-          const FormulaCard(
+          FormulaCard(
             label: 'HUBUNGAN DENGAN PERKALIAN',
             formula: 'a ÷ b = c  ↔  b × c = a',
           ),
 
-          // ── Tips ─────────────────────────────────────────────────────
-          const TipsBox(
-            text: 'Gunakan tabel perkalian untuk membantu pembagian!\n'
-                'Contoh: 36 ÷ 6 = ? → cari: 6 × ? = 36 → jawabannya 6  💡\n'
-                'Jika ada sisa, tuliskan sebagai: hasil + sisa/pembagi.',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DivisionStep extends StatelessWidget {
-  const _DivisionStep({required this.step, required this.text});
-  final int step;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: const BoxDecoration(
-              color: kRumusOrange,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$step',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontFamily: 'Fredoka One',
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 14,
-              color: kRumusTextDark,
-            ),
+          // ── Bottom Tips Card ──────────────────────────────────────────
+          RumusTipsCard(
+            tipText:
+                'Gunakan tabel perkalian untuk membantu pembagian!\n'
+                'Contoh: 36 ÷ 6 = ? → cari: 6 × ? = 36 → jawabannya 6 💡\n'
+                'Jika ada sisa, tuliskan sebagai: Hasil + sisa/pembagi.',
           ),
         ],
       ),

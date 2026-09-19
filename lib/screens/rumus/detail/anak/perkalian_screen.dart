@@ -1,8 +1,7 @@
 // lib/screens/rumus/detail/anak/perkalian_screen.dart
-//
-// Detail page: Perkalian (Multiplication) — Rumus Anak tier.
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../widgets/rumus_widgets.dart';
 
 class PerkalianScreen extends StatelessWidget {
@@ -10,62 +9,52 @@ class PerkalianScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Dasar',
-      topicTitle: 'Perkalian',
-      mascotEmoji: '✖️',
-      headerExtra: OperatorTabRow(
-        operators: const ['+', '−', '×', '÷'],
-        routes: const [
-          '/rumus/anak/penjumlahan',
-          '/rumus/anak/pengurangan',
-          '/rumus/anak/perkalian',
-          '/rumus/anak/pembagian',
-        ],
-      ),
-      body: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Definisi ──────────────────────────────────────────────────
-          const RumusTopicDefinition(
-            emoji: '✖️',
+          // ── Topic Header (Title & Subtitle) ───────────────────────────
+          const RumusTopicHeader(
             title: 'Perkalian',
-            definition:
-                'Penjumlahan berulang suatu bilangan sebanyak bilangan pengali. '
-                '3 × 4 artinya 3 dijumlahkan 4 kali.',
+            subtitle:
+                'Penjumlahan berulang suatu bilangan sebanyak bilangan pengali.',
           ),
 
-          // ── Sifat ────────────────────────────────────────────────────
-          const SectionTitle('📋 Sifat Perkalian'),
-          const SifatItem(
+          // ── Sifat Section ──────────────────────────────────────────────
+          const SectionTitle('Sifat:'),
+          const NumberedPropertyItem(
             number: 1,
-            title: 'Komutatif',
-            description: 'Urutan faktor tidak mengubah hasil.',
-            example: '4 × 7 = 7 × 4 = 28',
+            title: 'Bisa Ditukar (Komutatif)',
+            description: 'Urutan perkalian dua bilangan tidak mengubah hasil.',
+            example: 'a × b = b × a  →  4 × 7 = 7 × 4 = 28',
           ),
-          const SifatItem(
+          const NumberedPropertyItem(
             number: 2,
-            title: 'Asosiatif',
-            description: 'Pengelompokan faktor tidak mengubah hasil.',
-            example: '(2 × 3) × 5 = 2 × (3 × 5) = 30',
+            title: 'Bisa Dikelompokkan (Asosiatif)',
+            description: 'Pengelompokan urutan perkalian tidak mengubah hasil.',
+            example:
+                '(a × b) × c = a × (b × c)  →  (2 × 3) × 5 = 2 × (3 × 5) = 30',
           ),
-          const SifatItem(
+          const NumberedPropertyItem(
             number: 3,
-            title: 'Distributif terhadap Penjumlahan',
-            description: 'Perkalian menyebar ke setiap suku dalam kurung.',
+            title: 'Menyebar (Distributif)',
+            description:
+                'Perkalian menyebar ke setiap suku di dalam tanda kurung.',
             example: '3 × (4 + 5) = (3×4) + (3×5) = 12 + 15 = 27',
           ),
-          const SifatItem(
+          const NumberedPropertyItem(
             number: 4,
-            title: 'Identitas (Satu)',
-            description: 'Perkalian dengan 1 menghasilkan bilangan itu sendiri.',
-            example: '9 × 1 = 9',
+            title: 'Dikali Satu (Identitas)',
+            description:
+                'Perkalian dengan angka 1 menghasilkan bilangan itu sendiri.',
+            example: 'a × 1 = a  →  9 × 1 = 9',
           ),
-          const SifatItem(
+          const NumberedPropertyItem(
             number: 5,
-            title: 'Nol',
-            description: 'Perkalian dengan 0 selalu menghasilkan 0.',
-            example: '999 × 0 = 0',
+            title: 'Dikali Nol',
+            description: 'Perkalian dengan angka 0 selalu menghasilkan 0.',
+            example: 'a × 0 = 0  →  999 × 0 = 0',
           ),
 
           // ── Tabel Perkalian ──────────────────────────────────────────
@@ -74,33 +63,34 @@ class PerkalianScreen extends StatelessWidget {
             content: _MultiplicationTable(),
           ),
 
-          // ── Contoh ───────────────────────────────────────────────────
-          ContohBox(
-            title: 'Contoh Perhitungan',
-            content: const VerticalCalcExample(
-              top: '34',
-              operator: '×',
-              bottom: '6',
-              result: '204',
-            ),
+          // ── Math Calculation Section ──────────────────────────────────
+          const SectionTitle('Contoh Perhitungan:'),
+          const VerticalMathCalculation(
+            topNumber: '34',
+            bottomNumber: '6',
+            operator: '×',
+            resultNumber: '204',
+            note:
+                'Kalikan 6 × 4 = 24 (tulis 4, simpan 2). Lalu 6 × 3 = 18 + 2 = 20 → 204.',
           ),
+          const SizedBox(height: 16),
 
-          // ── Rumus ────────────────────────────────────────────────────
-          const SectionTitle('📐 Rumus'),
+          // ── Formula Cards ─────────────────────────────────────────────
           const FormulaCard(
-            label: 'PERKALIAN',
-            formula: 'a × b = hasil kali',
+            label: 'RUMUS PERKALIAN',
+            formula: 'a × b = Hasil Kali',
           ),
           const FormulaCard(
             label: 'PENJUMLAHAN BERULANG',
-            formula: 'a × b = a + a + … (b kali)',
+            formula: 'a × b = a + a + ... (b kali)',
           ),
 
-          // ── Tips ─────────────────────────────────────────────────────
-          const TipsBox(
-            text: 'Hafal perkalian 1–10 dengan cara bernyanyi atau "jarimatika"!\n'
-                'Perkalian 9: hasil selalu berurutan turun (9, 18, 27, 36, …)\n'
-                'Dan angka-angkanya selalu berjumlah 9!  🌟',
+          // ── Bottom Tips Card ──────────────────────────────────────────
+          const RumusTipsCard(
+            tipText:
+                'Hafal perkalian 1–10 dengan cara bernyanyi atau "jarimatika"! '
+                'Trik angka 9: hasil perkalian berurutan turun (9, 18, 27, 36...) '
+                'dan jumlah digit angkanya selalu 9! 🌟',
           ),
         ],
       ),
@@ -114,12 +104,15 @@ class _MultiplicationTable extends StatelessWidget {
   Widget build(BuildContext context) {
     const base = [1, 2, 3, 4, 5];
     return Table(
-      border: TableBorder.all(color: kDivider, borderRadius: BorderRadius.circular(4)),
+      border: TableBorder.all(
+        color: AppColors.tipBoxBorder,
+        borderRadius: BorderRadius.circular(6),
+      ),
       defaultColumnWidth: const FlexColumnWidth(),
       children: [
         // Header row
         TableRow(
-          decoration: const BoxDecoration(color: kRumusOrange),
+          decoration: const BoxDecoration(color: AppColors.rumusMulColor),
           children: ['×', ...base.map((e) => '$e')]
               .map((h) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
@@ -144,7 +137,7 @@ class _MultiplicationTable extends StatelessWidget {
                       '$row',
                       style: const TextStyle(
                         fontFamily: 'Fredoka One',
-                        color: kRumusOrange,
+                        color: AppColors.rumusMulColor,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
@@ -158,7 +151,8 @@ class _MultiplicationTable extends StatelessWidget {
                           '${row * col}',
                           style: const TextStyle(
                             fontSize: 13,
-                            color: kRumusTextDark,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

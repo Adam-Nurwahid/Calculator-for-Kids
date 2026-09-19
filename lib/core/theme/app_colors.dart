@@ -74,6 +74,36 @@ abstract final class AppColors {
   /// Border around tip / example boxes — light grey.
   static const Color tipBoxBorder = Color(0xFFDDDDDD);
 
+  // ── Redesign Kids Math Formula Specific Colors ─────────────────────────────
+
+  /// Top header background warm orange (#FFB042).
+  static const Color rumusHeaderBg = Color(0xFFFFB042);
+
+  /// Horizontal quick-nav dark slate container (#383B3E).
+  static const Color rumusNavBg = Color(0xFF383B3E);
+
+  /// Quick-nav Penjumlahan (+) squircle background (#FFB347).
+  static const Color rumusAddColor = Color(0xFFFFB347);
+
+  /// Quick-nav Pengurangan (-) squircle background (#FF5252).
+  static const Color rumusSubColor = Color(0xFFFF5252);
+
+  /// Quick-nav Perkalian (×) squircle background (#D05CE3).
+  static const Color rumusMulColor = Color(0xFFD05CE3);
+
+  /// Quick-nav Pembagian (÷) squircle background (#5AC8FA).
+  static const Color rumusDivColor = Color(0xFF5AC8FA);
+
+  /// Quick-nav Tanda Kurung ( ) squircle background (#4CD964).
+  static const Color rumusBracketColor = Color(0xFF4CD964);
+
+  /// Quick-nav Bangun Datar (📐) squircle background (#FF7043).
+  static const Color rumusShapesColor = Color(0xFFFF7043);
+
+  /// Numbered property circular badge (#FCA33B).
+  static const Color rumusBadgeOrange = Color(0xFFFCA33B);
+
+
   // ── Shared / Navigation Screens ─────────────────────────────────────────────
   // (Inferred from the orange palette family for visual consistency)
 

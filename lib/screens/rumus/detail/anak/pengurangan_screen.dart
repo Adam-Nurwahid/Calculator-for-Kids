@@ -1,6 +1,4 @@
 // lib/screens/rumus/detail/anak/pengurangan_screen.dart
-//
-// Detail page: Pengurangan (Subtraction) — Rumus Anak tier.
 
 import 'package:flutter/material.dart';
 import '../../../../widgets/rumus_widgets.dart';
@@ -10,81 +8,72 @@ class PenguranganScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Dasar',
-      topicTitle: 'Pengurangan',
-      mascotEmoji: '➖',
-      headerExtra: OperatorTabRow(
-        operators: const ['+', '−', '×', '÷'],
-        routes: const [
-          '/rumus/anak/penjumlahan',
-          '/rumus/anak/pengurangan',
-          '/rumus/anak/perkalian',
-          '/rumus/anak/pembagian',
-        ],
-      ),
-      body: Column(
+    return const SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Definisi ──────────────────────────────────────────────────
-          const RumusTopicDefinition(
-            emoji: '➖',
+          // ── Topic Header (Title & Subtitle) ───────────────────────────
+          RumusTopicHeader(
             title: 'Pengurangan',
-            definition:
-                'Operasi mencari selisih antara dua bilangan. '
-                'Bilangan pertama dikurangi bilangan kedua.',
+            subtitle:
+                'Mencari selisih atau mengambil sebagian nilai dari suatu kelompok.',
           ),
 
-          // ── Sifat ────────────────────────────────────────────────────
-          const SectionTitle('📋 Sifat Pengurangan'),
-          const SifatItem(
+          // ── Sifat Section ──────────────────────────────────────────────
+          SectionTitle('Sifat:'),
+          NumberedPropertyItem(
             number: 1,
-            title: 'Tidak Komutatif',
-            description: 'Urutan PENTING dalam pengurangan — tidak bisa dibalik.',
+            title: 'Tidak Bisa Ditukar (Tidak Komutatif)',
+            description:
+                'Urutan angka dalam pengurangan sangat penting dan tidak boleh dibalik.',
             example: '8 − 3 = 5, tapi 3 − 8 ≠ 5',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 2,
-            title: 'Tidak Asosiatif',
-            description: 'Pengelompokan mempengaruhi hasil.',
+            title: 'Tidak Bisa Dikelompokkan (Tidak Asosiatif)',
+            description:
+                'Perubahan pengelompokan kurung akan mengubah hasil akhir.',
             example: '(10 − 4) − 2 = 4 ≠ 10 − (4 − 2) = 8',
           ),
-          const SifatItem(
+          NumberedPropertyItem(
             number: 3,
-            title: 'Unsur Identitas (Nol)',
-            description: 'Mengurangi dengan 0 tidak mengubah bilangan.',
-            example: '9 − 0 = 9',
-          ),
-          const SifatItem(
-            number: 4,
-            title: 'Hubungan dengan Penjumlahan',
+            title: 'Dikurangi Nol (Unsur Identitas)',
             description:
-                'Pengurangan adalah kebalikan penjumlahan (operasi invers).',
+                'Mengurangi bilangan berapa pun dengan 0 menghasilkan bilangan itu sendiri.',
+            example: 'a − 0 = a  →  9 − 0 = 9',
+          ),
+          NumberedPropertyItem(
+            number: 4,
+            title: 'Kebalikan Penjumlahan (Invers)',
+            description:
+                'Pengurangan adalah operasi kebalikan langsung dari penjumlahan.',
             example: 'Jika 5 + 3 = 8, maka 8 − 3 = 5',
           ),
 
-          // ── Contoh ───────────────────────────────────────────────────
-          ContohBox(
-            title: 'Contoh Perhitungan',
-            content: const VerticalCalcExample(
-              top: '532',
-              operator: '−',
-              bottom: '274',
-              result: '258',
-            ),
+          // ── Math Calculation Section ──────────────────────────────────
+          SectionTitle('Contoh Perhitungan:'),
+          VerticalMathCalculation(
+            topNumber: '532',
+            bottomNumber: '274',
+            operator: '−',
+            resultNumber: '258',
+            note:
+                'Kurangi dari kolom satuan. Jika angka atas lebih kecil, pinjam 1 puluhan (10) dari sebelahnya.',
+          ),
+          SizedBox(height: 16),
+
+          // ── Formula Card ──────────────────────────────────────────────
+          FormulaCard(
+            label: 'RUMUS PENGURANGAN',
+            formula: 'a − b = Selisih',
           ),
 
-          // ── Rumus ────────────────────────────────────────────────────
-          const SectionTitle('📐 Rumus'),
-          const FormulaCard(
-            label: 'PENGURANGAN',
-            formula: 'a − b = selisih',
-          ),
-
-          // ── Tips ─────────────────────────────────────────────────────
-          const TipsBox(
-            text: 'Saat meminjam angka, ingat: 1 puluhan = 10 satuan.\n'
-                'Contoh: 42 − 17 → 12 − 7 = 5, lalu 3 − 1 = 2 → hasilnya 25  😊',
+          // ── Bottom Tips Card ──────────────────────────────────────────
+          RumusTipsCard(
+            tipText:
+                'Saat meminjam angka, ingat bahwa 1 puluhan sama dengan 10 satuan! '
+                'Contoh: 42 − 17 → (12 − 7 = 5), lalu sisa (3 − 1 = 2) → hasilnya 25 😊',
           ),
         ],
       ),

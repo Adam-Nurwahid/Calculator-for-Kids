@@ -79,8 +79,8 @@ abstract final class AppColors {
   /// Top header background warm orange (#FFB042).
   static const Color rumusHeaderBg = Color(0xFFFFB042);
 
-  /// Horizontal quick-nav dark slate container (#383B3E).
-  static const Color rumusNavBg = Color(0xFF383B3E);
+  /// Horizontal quick-nav white container (#FFFFFF).
+  static const Color rumusNavBg = Color(0xFFFFFFFF);
 
   /// Quick-nav Penjumlahan (+) squircle background (#FFB347).
   static const Color rumusAddColor = Color(0xFFFFB347);

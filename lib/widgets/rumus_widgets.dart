@@ -119,7 +119,7 @@ class _RumusHeaderState extends State<RumusHeader> {
 
   void _scrollToActiveTab() {
     if (widget.activeOpIndex == null || !_scrollController.hasClients) return;
-    const double itemWidth = 72.0;
+    const double itemWidth = 78.0;
     final double targetOffset = (widget.activeOpIndex! * itemWidth) - 100;
     final double maxScroll = _scrollController.position.maxScrollExtent;
     final double clampedOffset = targetOffset.clamp(0.0, maxScroll);
@@ -212,14 +212,14 @@ class _RumusHeaderState extends State<RumusHeader> {
             offset: const Offset(0, -20),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.rumusNavBg,
-                borderRadius: BorderRadius.circular(24),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -228,12 +228,14 @@ class _RumusHeaderState extends State<RumusHeader> {
                 controller: _scrollController,
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: List.generate(items.length, (index) {
                     final item = items[index];
                     final isActive = index == widget.activeOpIndex;
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
                       child: _NavOpButton(
                         data: item,
                         isActive: isActive,
@@ -271,60 +273,73 @@ class _NavOpButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: data.color,
-              borderRadius: BorderRadius.circular(16),
-              border: isActive
-                  ? Border.all(color: Colors.white, width: 2.5)
-                  : Border.all(color: Colors.transparent, width: 2.5),
-              boxShadow: [
-                BoxShadow(
-                  color: data.color.withValues(alpha: isActive ? 0.6 : 0.3),
-                  blurRadius: isActive ? 8 : 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: data.icon != null
-                    ? Icon(
-                        data.icon,
-                        color: Colors.white,
-                        size: 24,
-                      )
-                    : FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          data.symbol ?? '',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: (data.symbol?.length ?? 0) > 2 ? 18 : 22,
-                            fontWeight: FontWeight.bold,
+      child: SizedBox(
+        width: 74,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: data.color,
+                borderRadius: BorderRadius.circular(16),
+                border: isActive
+                    ? Border.all(color: data.color.withValues(alpha: 0.8), width: 2)
+                    : Border.all(color: Colors.transparent, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: data.color.withValues(alpha: isActive ? 0.5 : 0.25),
+                    blurRadius: isActive ? 8 : 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: data.icon != null
+                      ? Icon(
+                          data.icon,
+                          color: Colors.white,
+                          size: 24,
+                        )
+                      : FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            data.symbol ?? '',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: (data.symbol?.length ?? 0) > 2 ? 18 : 22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            data.label,
-            style: TextStyle(
-              color: isActive ? Colors.white : Colors.white70,
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 32,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Text(
+                  data.label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: const Color(0xFF333333),
+                    fontSize: 10,
+                    height: 1.15,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

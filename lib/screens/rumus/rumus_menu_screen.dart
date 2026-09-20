@@ -23,42 +23,42 @@ class _MateriItem {
 // ─── 3 Halaman Tier Data ─────────────────────────────────────────────────────
 
 const List<_TierData> _tiers = [
-  // Halaman 1: Rumus (Anak)
+  // Halaman 1: Operasi Dasar (6 item)
   _TierData(
-    label: 'Rumus (Anak)',
+    label: 'Operasi Dasar',
     items: [
       _MateriItem(label: 'Penjumlahan', route: '/rumus/anak/penjumlahan'),
       _MateriItem(label: 'Pengurangan', route: '/rumus/anak/pengurangan'),
       _MateriItem(label: 'Perkalian', route: '/rumus/anak/perkalian'),
       _MateriItem(label: 'Pembagian', route: '/rumus/anak/pembagian'),
       _MateriItem(label: 'Tanda Kurung', route: '/rumus/anak/tanda-kurung'),
-      _MateriItem(label: 'Bangun Datar', route: '/rumus/anak/bangun-datar'),
+      _MateriItem(label: 'Aljabar', route: '/rumus/anak/aljabar'),
     ],
   ),
 
-  // Halaman 2: Rumus (Umum 1)
+  // Halaman 2: Geometri & Matematika Menengah (6 item)
   _TierData(
-    label: 'Rumus (Umum 1)',
+    label: 'Geometri & Matematika Menengah',
     items: [
-      _MateriItem(label: 'Pecahan', route: '/rumus/umum1/pecahan'),
-      _MateriItem(label: 'Pangkat', route: '/rumus/umum1/pangkat'),
-      _MateriItem(label: 'Konversi Persen', route: '/rumus/umum1/konversi-persen'),
+      _MateriItem(label: 'Bangun Datar', route: '/rumus/geometri/bangun-datar'),
+      _MateriItem(label: 'Bangun Ruang', route: '/rumus/geometri/bangun-ruang'),
+      _MateriItem(label: 'Pecahan', route: '/rumus/geometri/pecahan'),
+      _MateriItem(label: 'Pangkat', route: '/rumus/geometri/pangkat'),
+      _MateriItem(label: 'Konversi Persen', route: '/rumus/geometri/konversi-persen'),
+      _MateriItem(label: 'Akar Kuadrat', route: '/rumus/geometri/akar-kuadrat'),
+    ],
+  ),
+
+  // Halaman 3: Matematika Tingkat Lanjut (6 item)
+  _TierData(
+    label: 'Matematika Tingkat Lanjut',
+    items: [
+      _MateriItem(label: 'Trigonometri', route: '/rumus/umum1/trigonometri'),
+      _MateriItem(label: 'Deg/Rad', route: '/rumus/umum1/deg-rad'),
+      _MateriItem(label: 'Logaritma', route: '/rumus/umum1/logaritma'),
       _MateriItem(label: 'Peluang', route: '/rumus/umum1/peluang'),
-      _MateriItem(label: 'Aljabar', route: '/rumus/umum1/aljabar'),
       _MateriItem(label: 'Statistika', route: '/rumus/umum1/statistika'),
-    ],
-  ),
-
-  // Halaman 3: Rumus (Umum 2)
-  _TierData(
-    label: 'Rumus (Umum 2)',
-    items: [
-      _MateriItem(label: 'Bangun ruang', route: '/rumus/umum2/bangun-ruang'),
-      _MateriItem(label: 'Trigonometri', route: '/rumus/umum2/trigonometri'),
-      _MateriItem(label: 'Logaritma', route: '/rumus/umum2/logaritma'),
-      _MateriItem(label: 'Akar Kuadrat', route: '/rumus/umum2/akar-kuadrat'),
-      _MateriItem(label: 'Deg/Rad', route: '/rumus/umum2/deg-rad'),
-      _MateriItem(label: 'Barisan & Deret', route: '/rumus/umum2/barisan-deret'),
+      _MateriItem(label: 'Barisan & Deret', route: '/rumus/umum1/barisan-deret'),
     ],
   ),
 ];

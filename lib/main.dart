@@ -8,29 +8,11 @@ import 'screens/level_selection_screen.dart';
 import 'screens/kalkulator_anak_screen.dart';
 import 'screens/kalkulator_umum_screen.dart';
 
-// Rumus feature — menu
+// Rumus feature — menu & container screens
 import 'screens/rumus/rumus_menu_screen.dart';
-
-// Rumus — Anak tier detail pages
 import 'screens/rumus/detail/anak/basic_formulas_screen.dart';
-
-// Rumus — Umum 1 tier detail pages
-// Rumus — Umum 1 tier detail pages
 import 'screens/rumus/detail/umum1/advanced_formulas_screen.dart';
-import 'screens/rumus/detail/umum1/pecahan_screen.dart';
-import 'screens/rumus/detail/umum1/pangkat_screen.dart';
-import 'screens/rumus/detail/umum1/konversi_persen_screen.dart';
-import 'screens/rumus/detail/umum1/peluang_screen.dart';
-import 'screens/rumus/detail/umum1/aljabar_screen.dart';
-import 'screens/rumus/detail/umum1/statistika_screen.dart';
-
-// Rumus — Umum 2 tier detail pages
-import 'screens/rumus/detail/umum2/bangun_ruang_screen.dart';
-import 'screens/rumus/detail/umum2/trigonometri_screen.dart';
-import 'screens/rumus/detail/umum2/logaritma_screen.dart';
-import 'screens/rumus/detail/umum2/akar_kuadrat_screen.dart';
-import 'screens/rumus/detail/umum2/deg_rad_screen.dart';
-import 'screens/rumus/detail/umum2/barisan_deret_screen.dart';
+import 'screens/rumus/detail/geometri/geometry_formulas_screen.dart';
 
 void main() {
   runApp(const KalkulatorKidsApp());
@@ -56,27 +38,45 @@ class KalkulatorKidsApp extends StatelessWidget {
         // ── Rumus menu ──────────────────────────────────────────────────
         '/rumus': (context) => const RumusMenuScreen(),
 
-        // ── Rumus Anak tier ─────────────────────────────────────────────
+        // ── Rumus Category 1: Operasi Dasar ─────────────────────────────
         '/rumus/anak/penjumlahan':  (context) => const BasicFormulasScreen(initialIndex: 0),
         '/rumus/anak/pengurangan':  (context) => const BasicFormulasScreen(initialIndex: 1),
         '/rumus/anak/perkalian':    (context) => const BasicFormulasScreen(initialIndex: 2),
         '/rumus/anak/pembagian':    (context) => const BasicFormulasScreen(initialIndex: 3),
         '/rumus/anak/tanda-kurung': (context) => const BasicFormulasScreen(initialIndex: 4),
-        '/rumus/anak/bangun-datar': (context) => const BasicFormulasScreen(initialIndex: 5),
+        '/rumus/anak/aljabar':      (context) => const BasicFormulasScreen(initialIndex: 5),
 
-        // ── Rumus Umum 1 & 2 (Matematika Tingkat Lanjut) ─────────────────
-        '/rumus/umum1/pecahan':        (context) => const AdvancedFormulasScreen(initialIndex: 0),
-        '/rumus/umum1/pangkat':        (context) => const AdvancedFormulasScreen(initialIndex: 1),
-        '/rumus/umum1/konversi-persen':(context) => const AdvancedFormulasScreen(initialIndex: 2),
-        '/rumus/umum1/peluang':        (context) => const AdvancedFormulasScreen(initialIndex: 3),
-        '/rumus/umum1/aljabar':        (context) => const AdvancedFormulasScreen(initialIndex: 4),
-        '/rumus/umum1/statistika':     (context) => const AdvancedFormulasScreen(initialIndex: 5),
-        '/rumus/umum2/bangun-ruang':   (context) => const AdvancedFormulasScreen(initialIndex: 6),
-        '/rumus/umum2/trigonometri':   (context) => const TrigonometriScreen(),
-        '/rumus/umum2/logaritma':      (context) => const LogaritmaScreen(),
-        '/rumus/umum2/akar-kuadrat':   (context) => const AkarKuadratScreen(),
-        '/rumus/umum2/deg-rad':        (context) => const DegRadScreen(),
-        '/rumus/umum2/barisan-deret':  (context) => const BarisanDeretScreen(),
+        // ── Rumus Category 2: Geometri & Matematika Menengah ──────────────
+        '/rumus/geometri/bangun-datar':(context) => const GeometryFormulasScreen(initialIndex: 0),
+        '/rumus/geometri/bangun-ruang':(context) => const GeometryFormulasScreen(initialIndex: 1),
+        '/rumus/geometri/pecahan':     (context) => const GeometryFormulasScreen(initialIndex: 2),
+        '/rumus/geometri/pangkat':     (context) => const GeometryFormulasScreen(initialIndex: 3),
+        '/rumus/geometri/konversi-persen':(context) => const GeometryFormulasScreen(initialIndex: 4),
+        '/rumus/geometri/akar-kuadrat':(context) => const GeometryFormulasScreen(initialIndex: 5),
+
+        // ── Rumus Category 3: Matematika Tingkat Lanjut ──────────────────
+        '/rumus/umum1/trigonometri':(context) => const AdvancedFormulasScreen(initialIndex: 0),
+        '/rumus/umum1/deg-rad':     (context) => const AdvancedFormulasScreen(initialIndex: 1),
+        '/rumus/umum1/logaritma':   (context) => const AdvancedFormulasScreen(initialIndex: 2),
+        '/rumus/umum1/peluang':     (context) => const AdvancedFormulasScreen(initialIndex: 3),
+        '/rumus/umum1/statistika':  (context) => const AdvancedFormulasScreen(initialIndex: 4),
+        '/rumus/umum1/barisan-deret':(context) => const AdvancedFormulasScreen(initialIndex: 5),
+
+        // ── Legacy / Alias Routes ─────────────────────────────────────────
+        '/rumus/umum1/pecahan':        (context) => const GeometryFormulasScreen(initialIndex: 2),
+        '/rumus/umum1/pangkat':        (context) => const GeometryFormulasScreen(initialIndex: 3),
+        '/rumus/umum1/konversi-persen':(context) => const GeometryFormulasScreen(initialIndex: 4),
+        '/rumus/umum1/aljabar':        (context) => const BasicFormulasScreen(initialIndex: 5),
+        '/rumus/umum1/akar-kuadrat':   (context) => const GeometryFormulasScreen(initialIndex: 5),
+        '/rumus/geometri/trigonometri':(context) => const AdvancedFormulasScreen(initialIndex: 0),
+        '/rumus/geometri/deg-rad':     (context) => const AdvancedFormulasScreen(initialIndex: 1),
+        '/rumus/anak/bangun-datar':    (context) => const GeometryFormulasScreen(initialIndex: 0),
+        '/rumus/umum2/bangun-ruang':   (context) => const GeometryFormulasScreen(initialIndex: 1),
+        '/rumus/umum2/trigonometri':   (context) => const AdvancedFormulasScreen(initialIndex: 0),
+        '/rumus/umum2/logaritma':      (context) => const AdvancedFormulasScreen(initialIndex: 2),
+        '/rumus/umum2/akar-kuadrat':   (context) => const GeometryFormulasScreen(initialIndex: 5),
+        '/rumus/umum2/deg-rad':        (context) => const AdvancedFormulasScreen(initialIndex: 1),
+        '/rumus/umum2/barisan-deret':  (context) => const AdvancedFormulasScreen(initialIndex: 5),
       },
     );
   }

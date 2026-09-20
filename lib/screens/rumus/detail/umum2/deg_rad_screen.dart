@@ -11,11 +11,9 @@ class DegRadScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Umum 2',
-      topicTitle: 'Derajat & Radian',
-      mascotEmoji: '🦅',
-      body: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const RumusTopicDefinition(

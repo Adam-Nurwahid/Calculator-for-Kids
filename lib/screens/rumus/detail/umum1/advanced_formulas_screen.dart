@@ -3,13 +3,12 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../widgets/rumus_widgets.dart';
-import 'pecahan_screen.dart';
-import 'pangkat_screen.dart';
-import 'konversi_persen_screen.dart';
+import '../umum2/trigonometri_screen.dart';
+import '../umum2/deg_rad_screen.dart';
+import '../umum2/logaritma_screen.dart';
 import 'peluang_screen.dart';
-import 'aljabar_screen.dart';
 import 'statistika_screen.dart';
-import '../umum2/bangun_ruang_screen.dart';
+import '../umum2/barisan_deret_screen.dart';
 
 class AdvancedFormulasScreen extends StatefulWidget {
   const AdvancedFormulasScreen({
@@ -29,53 +28,47 @@ class _AdvancedFormulasScreenState extends State<AdvancedFormulasScreen> {
 
   static const List<NavOpData> _advancedNavItems = [
     NavOpData(
-      label: 'Pecahan',
-      symbol: '½',
-      color: Color(0xFF4A9FE8),
-      route: '/rumus/umum1/pecahan',
+      label: 'Trigonometri',
+      icon: Icons.change_history_rounded,
+      color: Color(0xFF3F51B5),
+      route: '/rumus/umum1/trigonometri',
     ),
     NavOpData(
-      label: 'Pangkat',
-      symbol: 'xʸ',
-      color: Color(0xFFFF5252),
-      route: '/rumus/umum1/pangkat',
+      label: 'Deg/Rad',
+      symbol: '°/rad',
+      color: Color(0xFF8D6E63),
+      route: '/rumus/umum1/deg-rad',
     ),
     NavOpData(
-      label: 'Konversi Persen',
-      symbol: '%',
-      color: Color(0xFFD05CE3),
-      route: '/rumus/umum1/konversi-persen',
+      label: 'Logaritma',
+      symbol: 'log',
+      color: Color(0xFF673AB7),
+      route: '/rumus/umum1/logaritma',
     ),
     NavOpData(
       label: 'Peluang',
-      symbol: '🎲',
+      icon: Icons.casino_rounded,
       color: Color(0xFF5AC8FA),
       route: '/rumus/umum1/peluang',
     ),
     NavOpData(
-      label: 'Aljabar',
-      symbol: '📈',
-      color: Color(0xFF4CD964),
-      route: '/rumus/umum1/aljabar',
-    ),
-    NavOpData(
       label: 'Statistika',
-      symbol: '📊',
+      icon: Icons.bar_chart_rounded,
       color: Color(0xFFFCA33B),
       route: '/rumus/umum1/statistika',
     ),
     NavOpData(
-      label: 'Bangun Ruang',
-      symbol: '🧊',
-      color: Color(0xFFFF7043),
-      route: '/rumus/umum2/bangun-ruang',
+      label: 'Barisan & Deret',
+      symbol: 'Σ',
+      color: Color(0xFFFF8F00),
+      route: '/rumus/umum1/barisan-deret',
     ),
   ];
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex.clamp(0, 6);
+    _currentIndex = widget.initialIndex.clamp(0, 5);
     _pageController = PageController(initialPage: _currentIndex);
   }
 
@@ -120,13 +113,12 @@ class _AdvancedFormulasScreenState extends State<AdvancedFormulasScreen> {
                 });
               },
               children: const [
-                PecahanScreen(),
-                PangkatScreen(),
-                KonversiPersenScreen(),
+                TrigonometriScreen(),
+                DegRadScreen(),
+                LogaritmaScreen(),
                 PeluangScreen(),
-                AljabarScreen(),
                 StatistikaScreen(),
-                BangunRuangScreen(),
+                BarisanDeretScreen(),
               ],
             ),
           ),

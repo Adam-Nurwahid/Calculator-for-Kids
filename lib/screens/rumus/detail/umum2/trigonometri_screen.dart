@@ -2,7 +2,6 @@
 //
 // Detail page: Trigonometri — Rumus Umum 2 tier.
 
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../widgets/rumus_widgets.dart';
 
@@ -11,11 +10,9 @@ class TrigonometriScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RumusScaffold(
-      tierLabel: 'Matematika Tingkat Umum 2',
-      topicTitle: 'Trigonometri',
-      mascotEmoji: '🦅',
-      body: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const RumusTopicDefinition(

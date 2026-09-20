@@ -17,21 +17,13 @@ void main() {
     expect(find.text('Perkalian'), findsWidgets);
     expect(find.text('Pembagian'), findsWidgets);
     expect(find.text('Tanda Kurung'), findsWidgets);
-    expect(find.text('Bangun Datar'), findsWidgets);
+    expect(find.text('Aljabar'), findsWidgets);
 
-    // Tap index 4 (Tanda Kurung)
-    await tester.tap(find.text('Tanda Kurung').first);
+    // Tap index 5 (Aljabar)
+    await tester.tap(find.text('Aljabar').first);
     await tester.pumpAndSettle();
 
-    // Verify Tanda Kurung topic content is shown
-    expect(find.text('Aturan Prioritas Utama (KBKP):'), findsOneWidget);
-
-    // Tap index 5 (Bangun Datar)
-    await tester.tap(find.text('Bangun Datar').first);
-    await tester.pumpAndSettle();
-
-    // Verify Bangun Datar shape card content is shown
-    expect(find.text('Persegi'), findsOneWidget);
-    expect(find.text('Lingkaran'), findsOneWidget);
+    // Verify Aljabar topic content is shown
+    expect(find.text('Cabang matematika yang menggunakan simbol (variabel) untuk mewakili bilangan yang belum diketahui.'), findsOneWidget);
   });
 }

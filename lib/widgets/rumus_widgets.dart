@@ -28,13 +28,15 @@ const kDivider = AppColors.tipBoxBorder;
 class NavOpData {
   const NavOpData({
     required this.label,
-    required this.symbol,
+    this.symbol,
+    this.icon,
     required this.color,
     required this.route,
   });
 
   final String label;
-  final String symbol;
+  final String? symbol;
+  final IconData? icon;
   final Color color;
   final String route;
 }
@@ -86,12 +88,6 @@ class RumusHeader extends StatefulWidget {
       symbol: '( )',
       color: AppColors.rumusBracketColor,
       route: '/rumus/anak/tanda-kurung',
-    ),
-    NavOpData(
-      label: 'Bangun Datar',
-      symbol: '📐',
-      color: AppColors.rumusShapesColor,
-      route: '/rumus/anak/bangun-datar',
     ),
   ];
 
@@ -299,17 +295,23 @@ class _NavOpButton extends StatelessWidget {
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    data.symbol,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: data.symbol.length > 2 ? 18 : 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                child: data.icon != null
+                    ? Icon(
+                        data.icon,
+                        color: Colors.white,
+                        size: 24,
+                      )
+                    : FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          data.symbol ?? '',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: (data.symbol?.length ?? 0) > 2 ? 18 : 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
               ),
             ),
           ),

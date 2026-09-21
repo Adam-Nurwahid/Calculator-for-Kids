@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/calculator_umum_logic.dart';
+import 'kalkulator_tingkat_lanjut_screen.dart';
+
 
 /// Kalkulator Umum — full-featured calculator with:
 ///   • Light / Dark mode toggle
@@ -285,6 +287,20 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
                 icon: Icons.history_rounded,
                 color: _isDark ? Colors.white : Colors.black87,
                 onTap: () => setState(() => _showHistory = !_showHistory),
+              ),
+              const SizedBox(width: 4),
+              // Advanced Operations Menu
+              _IconBtn(
+                icon: Icons.tune_rounded,
+                color: _isDark ? Colors.white : Colors.black87,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const KalkulatorTingkatLanjutScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 4),
               // Back to level selection

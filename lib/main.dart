@@ -9,6 +9,8 @@ import 'screens/kalkulator_anak_screen.dart';
 import 'screens/kalkulator_umum_screen.dart';
 import 'screens/kalkulator_tingkat_lanjut_screen.dart';
 import 'screens/fraction_calculator_screen.dart';
+import 'screens/power_calculator_screen.dart';
+import 'screens/percent_conversion_screen.dart';
 
 // Rumus feature — menu & container screens
 import 'screens/rumus/rumus_menu_screen.dart';
@@ -38,6 +40,8 @@ class KalkulatorKidsApp extends StatelessWidget {
         '/kalkulator-umum': (context) => const KalkulatorUmumScreen(),
         '/kalkulator-tingkat-lanjut': (context) => const KalkulatorTingkatLanjutScreen(),
         '/kalkulator-pecahan': (context) => const FractionCalculatorScreen(),
+        '/kalkulator-pangkat': (context) => const PowerCalculatorScreen(),
+        '/konversi-persen': (context) => const PercentConversionScreen(),
 
 
         // ── Rumus menu ──────────────────────────────────────────────────

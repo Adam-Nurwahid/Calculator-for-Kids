@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'fraction_calculator_screen.dart';
+import 'power_calculator_screen.dart';
+import 'percent_conversion_screen.dart';
 
 class KalkulatorTingkatLanjutScreen extends StatefulWidget {
   const KalkulatorTingkatLanjutScreen({super.key});
@@ -42,7 +44,14 @@ class _KalkulatorTingkatLanjutScreenState
         pastelBg: _isDark ? const Color(0xFF281033) : const Color(0xFFF3E5F5),
         accentColor: const Color(0xFFAB47BC),
         icon: Icons.superscript_rounded,
-        onTap: () => _showComingSoon('Pangkat'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PowerCalculatorScreen(isDarkInit: _isDark),
+            ),
+          );
+        },
       ),
       _AdvancedItem(
         title: 'Konversi Persen',
@@ -50,7 +59,14 @@ class _KalkulatorTingkatLanjutScreenState
         pastelBg: _isDark ? const Color(0xFF0D2533) : const Color(0xFFE1F5FE),
         accentColor: const Color(0xFF29B6F6),
         icon: Icons.percent_rounded,
-        onTap: () => _showComingSoon('Konversi Persen'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PercentConversionScreen(isDarkInit: _isDark),
+            ),
+          );
+        },
       ),
       _AdvancedItem(
         title: 'Trigonometri',

@@ -17,7 +17,7 @@ import 'screens/rumus/rumus_menu_screen.dart';
 import 'screens/rumus/detail/anak/basic_formulas_screen.dart';
 import 'screens/rumus/detail/umum1/advanced_formulas_screen.dart';
 import 'screens/rumus/detail/geometri/geometry_formulas_screen.dart';
-
+import 'screens/trigonometry_calculator_screen.dart';
 void main() {
   runApp(const KalkulatorKidsApp());
 }

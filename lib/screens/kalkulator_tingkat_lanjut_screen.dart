@@ -1,8 +1,12 @@
+import 'package:calculator_kids/screens/trigonometry_calculator_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'fraction_calculator_screen.dart';
+import 'logarithm_calculator_screen.dart';
 import 'power_calculator_screen.dart';
 import 'percent_conversion_screen.dart';
+
+
 
 class KalkulatorTingkatLanjutScreen extends StatefulWidget {
   const KalkulatorTingkatLanjutScreen({super.key});
@@ -74,7 +78,14 @@ class _KalkulatorTingkatLanjutScreenState
         pastelBg: _isDark ? const Color(0xFF330C19) : const Color(0xFFFCE4EC),
         accentColor: const Color(0xFFEC407A),
         icon: Icons.waves_rounded,
-        onTap: () => _showComingSoon('Trigonometri'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TrigonometryCalculatorScreen(isDarkInit: _isDark),
+            ),
+          );
+        },
       ),
       _AdvancedItem(
         title: 'Logaritma',
@@ -82,7 +93,14 @@ class _KalkulatorTingkatLanjutScreenState
         pastelBg: _isDark ? const Color(0xFF331010) : const Color(0xFFFFEBEE),
         accentColor: const Color(0xFFEF5350),
         icon: Icons.functions_rounded,
-        onTap: () => _showComingSoon('Logaritma'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => LogarithmCalculatorScreen(isDarkInit: _isDark),
+            ),
+          );
+        },
       ),
       _AdvancedItem(
         title: 'Akar Kuadrat',

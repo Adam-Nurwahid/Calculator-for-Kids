@@ -1,6 +1,8 @@
+import 'package:calculator_kids/screens/square_root_calculator_screen.dart';
 import 'package:calculator_kids/screens/trigonometry_calculator_screen.dart';
 import 'package:flutter/material.dart';
 
+import 'deg_rad_calculator_screen.dart';
 import 'fraction_calculator_screen.dart';
 import 'logarithm_calculator_screen.dart';
 import 'power_calculator_screen.dart';
@@ -108,7 +110,14 @@ class _KalkulatorTingkatLanjutScreenState
         pastelBg: _isDark ? const Color(0xFF111733) : const Color(0xFFE8EAF6),
         accentColor: const Color(0xFF5C6BC0),
         icon: Icons.square_foot_rounded,
-        onTap: () => _showComingSoon('Akar Kuadrat'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SquareRootCalculatorScreen(isDarkInit: _isDark),
+            ),
+          );
+        },
       ),
       _AdvancedItem(
         title: 'DEG / RAD',
@@ -116,7 +125,14 @@ class _KalkulatorTingkatLanjutScreenState
         pastelBg: _isDark ? const Color(0xFF09282C) : const Color(0xFFE0F7FA),
         accentColor: const Color(0xFF26C6DA),
         icon: Icons.rotate_right_rounded,
-        onTap: () => _showComingSoon('DEG / RAD'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DegRadCalculatorScreen(isDarkInit: _isDark),
+            ),
+          );
+        },
       ),
     ];
 

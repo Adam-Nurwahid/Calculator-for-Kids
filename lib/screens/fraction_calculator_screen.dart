@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/fraction_calculator_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 
 class FractionCalculatorScreen extends StatefulWidget {
   final bool isDarkInit;
@@ -47,6 +49,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
     setState(() {
       switch (val) {
         case 'AC':
+        case 'C':
           _calcState.clearAll();
           break;
 
@@ -84,7 +87,6 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
           break;
 
         default:
-          // Ignore unsupported keys like '(', ')', '%', '⤢', ',' for slot digit input
           break;
       }
     });
@@ -122,23 +124,53 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 4),
-                _buildModeToggle(),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDisplayArea()),
-                _buildKeypad(),
-              ],
-            ),
-            if (_showHistory) _buildHistoryPanel(),
-          ],
+      body: CalcResponsiveContainer(
+        backgroundColor: _bgColor,
+        maxWidth: 480,
+        onKeyInput: _onKeypad,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 560;
+
+                  if (isLandscape || isCompactHeight) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          _buildTopBar(),
+                          const SizedBox(height: 4),
+                          _buildModeToggle(),
+                          const SizedBox(height: 8),
+                          _buildDisplayArea(),
+                          const SizedBox(height: 8),
+                          _buildKeypad(),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 4),
+                      _buildModeToggle(),
+                      const SizedBox(height: 8),
+                      Expanded(child: Center(child: _buildDisplayArea())),
+                      _buildKeypad(),
+                    ],
+                  );
+                },
+              ),
+              if (_showHistory) _buildHistoryPanel(),
+            ],
+          ),
         ),
       ),
     );
@@ -269,11 +301,12 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Main Fraction expression input box
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             decoration: BoxDecoration(
               color: _cardBg,
               borderRadius: BorderRadius.circular(24),
@@ -302,7 +335,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
 
                   // Operator Box
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Column(
                       children: [
                         Text(
@@ -315,7 +348,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
                         ),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: _kOrange.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
@@ -324,7 +357,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
                           child: Text(
                             _calcState.op,
                             style: const TextStyle(
-                              fontSize: 26,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: _kOrange,
                             ),
@@ -348,7 +381,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Output Result Container
           _buildResultDisplay(res),
@@ -376,10 +409,10 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
             value: whole,
             placeholder: 'W',
             slot: wholeSlot,
-            width: 52,
-            height: 64,
+            width: 50,
+            height: 60,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
         ],
         Column(
           mainAxisSize: MainAxisSize.min,
@@ -389,13 +422,13 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
               value: num,
               placeholder: 'N',
               slot: numSlot,
-              width: 60,
-              height: 44,
+              width: 58,
+              height: 40,
             ),
             // Fraction divider line
             Container(
               margin: const EdgeInsets.symmetric(vertical: 4),
-              width: 56,
+              width: 54,
               height: 3,
               decoration: BoxDecoration(
                 color: _textColor.withValues(alpha: 0.8),
@@ -407,8 +440,8 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
               value: den,
               placeholder: 'D',
               slot: denSlot,
-              width: 60,
-              height: 44,
+              width: 58,
+              height: 40,
             ),
           ],
         ),
@@ -449,19 +482,19 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
           ),
           boxShadow: isActive
               ? [
-            BoxShadow(
-              color: _kOrange.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            )
-          ]
+                  BoxShadow(
+                    color: _kOrange.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ]
               : null,
         ),
         child: Center(
           child: Text(
             value.isEmpty ? placeholder : value,
             style: TextStyle(
-              fontSize: value.length > 3 ? 14 : 20,
+              fontSize: value.length > 3 ? 13 : 18,
               fontWeight: value.isEmpty ? FontWeight.normal : FontWeight.bold,
               color: value.isEmpty
                   ? _subTextColor.withValues(alpha: 0.4)
@@ -477,7 +510,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
     if (_calcState.errorMessage != null) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(18),
@@ -487,12 +520,14 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
           children: [
             const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 20),
             const SizedBox(width: 8),
-            Text(
-              _calcState.errorMessage!,
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
+            Expanded(
+              child: Text(
+                _calcState.errorMessage!,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             ),
           ],
@@ -503,12 +538,12 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
     if (res == null || !res.isSuccess || res.fraction == null) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         alignment: Alignment.centerRight,
         child: Text(
           '= ...',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w500,
             color: _subTextColor.withValues(alpha: 0.5),
           ),
@@ -523,7 +558,7 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         color: _cardBg,
         borderRadius: BorderRadius.circular(20),
@@ -549,18 +584,18 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
               Text(
                 '= $mixedFormatted',
                 style: const TextStyle(
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.w900,
                   color: _kOrange,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             'Format Biasa: $simpleFormatted  |  Desimal: ${dec.toStringAsFixed(dec.truncateToDouble() == dec ? 0 : 3)}',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w500,
               color: _subTextColor,
             ),
@@ -589,13 +624,13 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildKeypadRow(['⤢', 'AC', '⌫', '%', '÷']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow(['(', '7', '8', '9', '×']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow([')', '4', '5', '6', '-']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow(['00', '1', '2', '3', '+']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildLastKeypadRow(),
         ],
       ),
@@ -616,9 +651,9 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
         Expanded(
           flex: 3,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 3),
             child: SizedBox(
-              height: 48,
+              height: 44,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _kOrange,
@@ -626,14 +661,14 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
                   elevation: 3,
                   shadowColor: _kOrange.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(22),
                   ),
                 ),
                 onPressed: () => _onKeypad('='),
                 child: const Text(
                   '=',
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -654,9 +689,9 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: AspectRatio(
-          aspectRatio: 1.25,
+          aspectRatio: 1.35,
           child: _KeypadButton(
             label: label,
             bgColor: bg,
@@ -677,10 +712,10 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
           color: Colors.black54,
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
-            onTap: () {}, // Absorb clicks
+            onTap: () {},
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,
@@ -764,6 +799,12 @@ class _FractionCalculatorScreenState extends State<FractionCalculatorScreen> {
   }
 }
 
+class _FractionHistoryEntry {
+  const _FractionHistoryEntry(this.expression, this.result);
+  final String expression;
+  final String result;
+}
+
 class _ModeTabButton extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -783,7 +824,7 @@ class _ModeTabButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark ? Colors.white : Colors.black)
@@ -791,19 +832,19 @@ class _ModeTabButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: isSelected
               ? [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            )
-          ]
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
               : null,
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: isSelected
                   ? (isDark ? Colors.black : Colors.white)
@@ -836,6 +877,7 @@ class _KeypadButton extends StatefulWidget {
 class _KeypadButtonState extends State<_KeypadButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -857,22 +899,30 @@ class _KeypadButtonState extends State<_KeypadButton>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.bgColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Center(
-            child: _buildLabel(),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
+                  : widget.bgColor,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Center(
+              child: _buildLabel(),
+            ),
           ),
         ),
       ),
@@ -889,17 +939,10 @@ class _KeypadButtonState extends State<_KeypadButton>
     return Text(
       widget.label,
       style: TextStyle(
-        fontSize: widget.label.length > 2 ? 14 : 20,
-        fontWeight: FontWeight.bold,
+        fontSize: widget.label.length > 2 ? 14 : (widget.label.length > 1 ? 18 : 22),
         color: widget.fgColor,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
-}
-
-class _FractionHistoryEntry {
-  final String expression;
-  final String result;
-
-  const _FractionHistoryEntry(this.expression, this.result);
 }

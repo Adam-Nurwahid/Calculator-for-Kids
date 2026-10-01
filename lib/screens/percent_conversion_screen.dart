@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/percent_conversion_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 
 class PercentConversionScreen extends StatefulWidget {
   final bool isDarkInit;
@@ -47,6 +49,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
     setState(() {
       switch (val) {
         case 'AC':
+        case 'C':
           _calcState.clearAll();
           break;
 
@@ -75,7 +78,6 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
           break;
 
         default:
-          // Ignore unsupported keys like '(', ')', '%', '⤢', '÷', '×', '+'
           break;
       }
     });
@@ -106,23 +108,53 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 4),
-                _buildSelectorRow(),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDisplayArea()),
-                _buildKeypad(),
-              ],
-            ),
-            if (_showHistory) _buildHistoryPanel(),
-          ],
+      body: CalcResponsiveContainer(
+        backgroundColor: _bgColor,
+        maxWidth: 480,
+        onKeyInput: _onKeypad,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 560;
+
+                  if (isLandscape || isCompactHeight) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          _buildTopBar(),
+                          const SizedBox(height: 4),
+                          _buildSelectorRow(),
+                          const SizedBox(height: 8),
+                          _buildDisplayArea(),
+                          const SizedBox(height: 8),
+                          _buildKeypad(),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 4),
+                      _buildSelectorRow(),
+                      const SizedBox(height: 8),
+                      Expanded(child: Center(child: _buildDisplayArea())),
+                      _buildKeypad(),
+                    ],
+                  );
+                },
+              ),
+              if (_showHistory) _buildHistoryPanel(),
+            ],
+          ),
         ),
       ),
     );
@@ -334,12 +366,13 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Main Input display box
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             decoration: BoxDecoration(
               color: _cardBg,
               borderRadius: BorderRadius.circular(24),
@@ -357,7 +390,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
                 Text(
                   _calcState.rawInput.isEmpty ? '0' : _calcState.rawInput,
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: 34,
                     fontWeight: FontWeight.bold,
                     color: _calcState.rawInput.isEmpty
                         ? _subTextColor.withValues(alpha: 0.4)
@@ -370,7 +403,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
                     child: Text(
                       _calcState.fromUnit.symbol,
                       style: const TextStyle(
-                        fontSize: 32,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: _kOrange,
                       ),
@@ -380,7 +413,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Output Result Display Box
           _buildResultDisplay(res),
@@ -393,7 +426,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
     if (_calcState.errorMessage != null) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(18),
@@ -421,12 +454,12 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
     if (res == null || !res.isSuccess || res.formattedResult == null) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         alignment: Alignment.centerRight,
         child: Text(
           '= ...',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w500,
             color: _subTextColor.withValues(alpha: 0.5),
           ),
@@ -438,7 +471,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         color: _cardBg,
         borderRadius: BorderRadius.circular(20),
@@ -453,7 +486,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
           Text(
             'Hasil / Result',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: _subTextColor,
             ),
@@ -461,7 +494,7 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
           Text(
             '= $formatted',
             style: const TextStyle(
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
               color: _kOrange,
             ),
@@ -490,13 +523,13 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildKeypadRow(['⤢', 'AC', '⌫', '%', '÷']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow(['(', '7', '8', '9', '×']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow([')', '4', '5', '6', '-']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow(['00', '1', '2', '3', '+']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildLastKeypadRow(),
         ],
       ),
@@ -517,9 +550,9 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
         Expanded(
           flex: 3,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 3),
             child: SizedBox(
-              height: 48,
+              height: 44,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _kOrange,
@@ -527,14 +560,14 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
                   elevation: 3,
                   shadowColor: _kOrange.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(22),
                   ),
                 ),
                 onPressed: () => _onKeypad('='),
                 child: const Text(
                   '=',
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -555,9 +588,9 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: AspectRatio(
-          aspectRatio: 1.25,
+          aspectRatio: 1.35,
           child: _KeypadButton(
             label: label,
             bgColor: bg,
@@ -578,10 +611,10 @@ class _PercentConversionScreenState extends State<PercentConversionScreen> {
           color: Colors.black54,
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
-            onTap: () {}, // Absorb clicks
+            onTap: () {},
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,
@@ -685,6 +718,7 @@ class _KeypadButton extends StatefulWidget {
 class _KeypadButtonState extends State<_KeypadButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -706,22 +740,30 @@ class _KeypadButtonState extends State<_KeypadButton>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.bgColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Center(
-            child: _buildLabel(),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
+                  : widget.bgColor,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Center(
+              child: _buildLabel(),
+            ),
           ),
         ),
       ),

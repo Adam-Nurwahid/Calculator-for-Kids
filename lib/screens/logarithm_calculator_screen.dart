@@ -1,19 +1,11 @@
 // lib/screens/logarithm_calculator_screen.dart
-//
-// "Kalkulator Logaritma" — reachable from the Logaritma tile on the
-// Kalkulator Tingkat Lanjut menu (and from the Logaritma rumus page).
-//
-//   • log  → base-10 logarithm, argument typed as a free expression
-//            (e.g. "log" + "100+900" → log(100 + 900)).
-//   • ln   → natural logarithm, same idea as `log`.
-//   • logₓ → custom base: tap the small base box or the value box to make
-//            it active, then type plain numbers into it (like the Pangkat
-//            calculator's base/exponent slots).
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/logarithm_calculator_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 
 class LogarithmCalculatorScreen extends StatefulWidget {
   final bool isDarkInit;
@@ -44,7 +36,6 @@ class _LogarithmCalculatorScreenState extends State<LogarithmCalculatorScreen> {
 
   // ── Colors ────────────────────────────────────────────────────────────────
   Color get _bgColor => _isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFFFBE7);
-  Color get _cardBg => _isDark ? const Color(0xFF1E1E1E) : Colors.white;
   Color get _textColor => _isDark ? Colors.white : const Color(0xFF1A1A1A);
   Color get _subTextColor => _isDark ? const Color(0xFFA0A0A0) : const Color(0xFF666666);
   Color get _btnNumBg => _isDark ? const Color(0xFF222222) : const Color(0xFFF2F2F7);
@@ -58,6 +49,7 @@ class _LogarithmCalculatorScreenState extends State<LogarithmCalculatorScreen> {
     setState(() {
       switch (val) {
         case 'AC':
+        case 'C':
           _state.clearAll();
           break;
 
@@ -71,14 +63,12 @@ class _LogarithmCalculatorScreenState extends State<LogarithmCalculatorScreen> {
 
         default:
           if (_state.isCustom) {
-            // Only digits, ',', '00', '-' make sense inside a plain slot.
             const allowed = {
               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '00', ',', '-'
             };
             if (allowed.contains(val)) {
               _state.inputSlotDigit(val);
             }
-            // '(', ')', '%', '+', '×', '÷' are ignored in logₓ mode.
           } else {
             _state.appendArg(val);
           }
@@ -111,23 +101,53 @@ class _LogarithmCalculatorScreenState extends State<LogarithmCalculatorScreen> {
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 4),
-                _buildFnTabs(),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDisplayArea()),
-                _buildKeypad(),
-              ],
-            ),
-            if (_showHistory) _buildHistoryPanel(),
-          ],
+      body: CalcResponsiveContainer(
+        backgroundColor: _bgColor,
+        maxWidth: 480,
+        onKeyInput: _onKeypad,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 560;
+
+                  if (isLandscape || isCompactHeight) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          _buildTopBar(),
+                          const SizedBox(height: 4),
+                          _buildFnTabs(),
+                          const SizedBox(height: 8),
+                          _buildDisplayArea(),
+                          const SizedBox(height: 8),
+                          _buildKeypad(),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 4),
+                      _buildFnTabs(),
+                      const SizedBox(height: 8),
+                      Expanded(child: Center(child: _buildDisplayArea())),
+                      _buildKeypad(),
+                    ],
+                  );
+                },
+              ),
+              if (_showHistory) _buildHistoryPanel(),
+            ],
+          ),
         ),
       ),
     );
@@ -471,8 +491,6 @@ class _LogarithmCalculatorScreenState extends State<LogarithmCalculatorScreen> {
   Widget _buildKeyBtn(String label) {
     final isOp = ['÷', '×', '+', '='].contains(label);
     final isSpec = ['AC', '⌫', '⤢', '%', '(', ')'].contains(label);
-    // In logₓ mode, parentheses/operators/% are inert — dim them so it's
-    // visually clear only the digits (and -) do anything.
     final isDisabledInCustom = _state.isCustom &&
         ['(', ')', '%', '+', '×', '÷'].contains(label);
 
@@ -683,6 +701,7 @@ class _KeypadButton extends StatefulWidget {
 class _KeypadButtonState extends State<_KeypadButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -704,21 +723,29 @@ class _KeypadButtonState extends State<_KeypadButton>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.bgColor,
-            borderRadius: BorderRadius.circular(20),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
+                  : widget.bgColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Center(child: _buildLabel()),
           ),
-          child: Center(child: _buildLabel()),
         ),
       ),
     );

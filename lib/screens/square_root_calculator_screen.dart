@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/square_root_calculator_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 
 class SquareRootCalculatorScreen extends StatefulWidget {
   final bool isDarkInit;
@@ -56,6 +58,7 @@ class _SquareRootCalculatorScreenState
     setState(() {
       switch (val) {
         case 'AC':
+        case 'C':
           _state.clearAll();
           break;
 
@@ -75,7 +78,6 @@ class _SquareRootCalculatorScreenState
             if (allowed.contains(val)) {
               _state.inputSlotDigit(val);
             }
-            // '(', ')', '%', '+', '×', '÷' are ignored in ⁿ√ mode.
           } else {
             _state.appendArg(val);
           }
@@ -108,23 +110,53 @@ class _SquareRootCalculatorScreenState
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 4),
-                _buildFnTabs(),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDisplayArea()),
-                _buildKeypad(),
-              ],
-            ),
-            if (_showHistory) _buildHistoryPanel(),
-          ],
+      body: CalcResponsiveContainer(
+        backgroundColor: _bgColor,
+        maxWidth: 480,
+        onKeyInput: _onKeypad,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 560;
+
+                  if (isLandscape || isCompactHeight) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          _buildTopBar(),
+                          const SizedBox(height: 4),
+                          _buildFnTabs(),
+                          const SizedBox(height: 8),
+                          _buildDisplayArea(),
+                          const SizedBox(height: 8),
+                          _buildKeypad(),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 4),
+                      _buildFnTabs(),
+                      const SizedBox(height: 8),
+                      Expanded(child: Center(child: _buildDisplayArea())),
+                      _buildKeypad(),
+                    ],
+                  );
+                },
+              ),
+              if (_showHistory) _buildHistoryPanel(),
+            ],
+          ),
         ),
       ),
     );
@@ -405,13 +437,13 @@ class _SquareRootCalculatorScreenState
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildKeypadRow(['⤢', 'AC', '⌫', '%', '÷']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow(['(', '7', '8', '9', '×']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow([')', '4', '5', '6', '-']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildKeypadRow(['00', '1', '2', '3', '+']),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _buildLastKeypadRow(),
         ],
       ),
@@ -432,9 +464,9 @@ class _SquareRootCalculatorScreenState
         Expanded(
           flex: 3,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 3),
             child: SizedBox(
-              height: 48,
+              height: 44,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _kOrange,
@@ -442,14 +474,14 @@ class _SquareRootCalculatorScreenState
                   elevation: 3,
                   shadowColor: _kOrange.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(22),
                   ),
                 ),
                 onPressed: () => _onKeypad('='),
                 child: const Text(
                   '=',
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -472,9 +504,9 @@ class _SquareRootCalculatorScreenState
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: AspectRatio(
-          aspectRatio: 1.25,
+          aspectRatio: 1.35,
           child: Opacity(
             opacity: isDisabledInNth ? 0.35 : 1.0,
             child: _KeypadButton(
@@ -501,10 +533,10 @@ class _SquareRootCalculatorScreenState
           color: Colors.black54,
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
-            onTap: () {}, // Absorb clicks
+            onTap: () {},
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,
@@ -588,10 +620,6 @@ class _SquareRootCalculatorScreenState
   }
 }
 
-// ---------------------------------------------------------------------------
-// √ / ⁿ√ tab button
-// ---------------------------------------------------------------------------
-
 class _FnTabButton extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -627,12 +655,12 @@ class _FnTabButton extends StatelessWidget {
           ),
           boxShadow: isSelected
               ? [
-            BoxShadow(
-              color: _kOrange.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ]
+                  BoxShadow(
+                    color: _kOrange.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
               : null,
         ),
         child: Center(
@@ -649,10 +677,6 @@ class _FnTabButton extends StatelessWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Individual keypad button (press-scale animation)
-// ---------------------------------------------------------------------------
 
 class _KeypadButton extends StatefulWidget {
   final String label;
@@ -674,6 +698,7 @@ class _KeypadButton extends StatefulWidget {
 class _KeypadButtonState extends State<_KeypadButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -695,21 +720,29 @@ class _KeypadButtonState extends State<_KeypadButton>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.bgColor,
-            borderRadius: BorderRadius.circular(20),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
+                  : widget.bgColor,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Center(child: _buildLabel()),
           ),
-          child: Center(child: _buildLabel()),
         ),
       ),
     );
@@ -732,10 +765,6 @@ class _KeypadButtonState extends State<_KeypadButton>
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// History entry model
-// ---------------------------------------------------------------------------
 
 class _RootHistoryEntry {
   final String expression;

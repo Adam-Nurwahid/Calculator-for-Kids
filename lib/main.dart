@@ -17,7 +17,7 @@ import 'screens/rumus/rumus_menu_screen.dart';
 import 'screens/rumus/detail/anak/basic_formulas_screen.dart';
 import 'screens/rumus/detail/umum1/advanced_formulas_screen.dart';
 import 'screens/rumus/detail/geometri/geometry_formulas_screen.dart';
-import 'screens/trigonometry_calculator_screen.dart';
+
 void main() {
   runApp(const KalkulatorKidsApp());
 }
@@ -30,8 +30,11 @@ class KalkulatorKidsApp extends StatelessWidget {
     return MaterialApp(
       title: 'Kalkulator Anak',
       debugShowCheckedModeBanner: false,
-      theme: _buildTheme(),
+      theme: _buildLightTheme(),
+      darkTheme: _buildDarkTheme(),
+      themeMode: ThemeMode.system,
       initialRoute: '/',
+
       routes: {
         // ── Root: goes straight to mode selection (no splash/start screen) ─
         '/': (context) => const ModeSelectionScreen(),
@@ -90,11 +93,10 @@ class KalkulatorKidsApp extends StatelessWidget {
     );
   }
 
-  ThemeData _buildTheme() {
-    // Apply Fredoka One globally via google_fonts textTheme so every Text widget
-    // inherits it automatically. Individual screens can still override per-widget.
+  ThemeData _buildLightTheme() {
     final base = ThemeData(
       useMaterial3: true,
+      fontFamily: 'GothamRounded',
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.calcBackground,
         brightness: Brightness.light,
@@ -110,9 +112,37 @@ class KalkulatorKidsApp extends StatelessWidget {
     );
     return base.copyWith(
       textTheme: AppFonts.textTheme.apply(
+        fontFamily: 'GothamRounded',
         bodyColor: AppColors.textTitle,
         displayColor: AppColors.textTitle,
       ),
     );
   }
+
+  ThemeData _buildDarkTheme() {
+    final base = ThemeData(
+      useMaterial3: true,
+      fontFamily: 'GothamRounded',
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.calcBackground,
+        brightness: Brightness.dark,
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+    );
+    return base.copyWith(
+      textTheme: AppFonts.textTheme.apply(
+        fontFamily: 'GothamRounded',
+        bodyColor: Colors.white,
+        displayColor: Colors.white,
+      ),
+    );
+  }
 }
+

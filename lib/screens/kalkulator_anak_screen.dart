@@ -2,10 +2,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../core/theme/app_colors.dart';
 import '../logic/calculator_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 
-/// Screen Kalkulator Anak sesuai desain UI.
+/// Screen Kalkulator Anak — fully responsive for phones, tablets, and desktop/web.
 class KalkulatorAnakScreen extends StatefulWidget {
   const KalkulatorAnakScreen({super.key});
 
@@ -62,7 +63,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // Logika Tombol
+  // Logika Tombol (Unchanged)
   // ---------------------------------------------------------------------------
 
   void _onButton(String value) {
@@ -162,55 +163,95 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // Tampilan Layar (Build)
+  // Tampilan Layar (Responsive Build)
   // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: const Color(0xFFFDCB35), // Warna kuning cerah dasar kalkulator
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Column(
-              children: [
-                _buildTopBar(context),
-                const SizedBox(height: 35), // Ruang ekstra untuk kepala kucing di atas
-                SizedBox(
-                  height: 180, // <-- ATUR TINGGI KOTAK DI SINI (misal: 160 - 190)
-                  child: _buildDisplayWithMascot(),
-                ),
-                const Spacer(), // Mendorong tombol-tombol agar tetap rapi di bagian bawah layar
-                _buildButtonGrid(),
-              ],
-            ),
-          ),
+      body: CalcResponsiveContainer(
+        backgroundColor: const Color(0xFFFDCB35),
+        maxWidth: 480,
+        onKeyInput: _onButton,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 680;
+                  final isCompact = isLandscape || isCompactHeight;
 
-          // Star-burst overlay
-          if (_showStars)
-            IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _starAnim,
-                builder: (context, _) => CustomPaint(
-                  size: MediaQuery.of(context).size,
-                  painter: _StarBurstPainter(_starAnim.value),
-                ),
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Container(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildTopBar(context),
+                              SizedBox(height: isCompact ? 8 : 20),
+                              SizedBox(
+                                height: isCompact ? 130 : 160,
+                                child: _buildDisplayWithMascot(compactMode: isCompact),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: isCompact ? 10 : 16),
+                            child: _buildButtonGrid(compactMode: isCompact),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-            ),
-        ],
+
+              // Star-burst overlay
+              if (_showStars)
+                IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _starAnim,
+                    builder: (context, _) => CustomPaint(
+                      size: MediaQuery.sizeOf(context),
+                      painter: _StarBurstPainter(_starAnim.value),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Toggle Dark/Light Mode Pill Button
+          // Back button
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.black87,
+              size: 26,
+            ),
+          ),
+
+          // Theme pill & title indicator
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFFF3AF00),
               borderRadius: BorderRadius.circular(20),
@@ -225,28 +266,20 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
                   ),
                   child: const Icon(
                     Icons.wb_sunny_rounded,
-                    size: 16,
+                    size: 14,
                     color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Icon(
-                  Icons.nightlight_round,
-                  size: 16,
-                  color: Colors.white,
+                const Text(
+                  'Kalkulator SD',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-                const SizedBox(width: 4),
               ],
-            ),
-          ),
-
-          // History Icon
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.history_rounded,
-              color: Colors.black87,
-              size: 28,
             ),
           ),
         ],
@@ -254,7 +287,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     );
   }
 
-  Widget _buildDisplayWithMascot() {
+  Widget _buildDisplayWithMascot({required bool compactMode}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
@@ -262,11 +295,11 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
           children: [
             // ── Maskot Kucing Baca Buku ─────────────────────────────
             Positioned(
-              top: -55, // Mengatur agar kepala kucing muncul di atas kotak kuning
-              left: 28,
+              top: compactMode ? -35 : -55,
+              left: 24,
               child: Image.asset(
-                'assets/membaca_buku_belajar_1.png', // TODO: ISI PATH ASSET MASKOT KUCING BACA DI SINI
-                height: 55,
+                'assets/membaca_buku_belajar_1.png',
+                height: compactMode ? 42 : 55,
                 fit: BoxFit.contain,
               ),
             ),
@@ -274,7 +307,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
             // ── Layar Kotak Display Kuning ──────────────────────────
             Positioned.fill(
               child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: AnimatedBuilder(
                   animation: _shakeAnim,
                   builder: (context, child) {
@@ -286,9 +319,12 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: compactMode ? 8 : 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5B800), // Kuning kotak display
+                      color: const Color(0xFFF5B800),
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: Column(
@@ -301,27 +337,29 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
                           fit: BoxFit.scaleDown,
                           child: Text(
                             _expression.isEmpty ? '0' : _expression,
-                            style: const TextStyle(
-                              fontSize: 48,
+                            style: TextStyle(
+                              fontSize: compactMode ? 36 : 48,
                               fontWeight: FontWeight.w900,
                               color: Colors.black,
                               letterSpacing: 1.5,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: compactMode ? 4 : 8),
 
                         // Hasil / Error
-                        Text(
-                          _result.isEmpty
-                              ? ''
-                              : (_isError ? _result : _result),
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: _isError
-                                ? Colors.red.shade900
-                                : const Color(0xFF6B587B), // Ungu/abu-abu lembut sesuai gambar
+                        FittedBox(
+                          alignment: Alignment.centerRight,
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _result.isEmpty ? '' : _result,
+                            style: TextStyle(
+                              fontSize: compactMode ? 22 : 28,
+                              fontWeight: FontWeight.bold,
+                              color: _isError
+                                  ? Colors.red.shade900
+                                  : const Color(0xFF6B587B),
+                            ),
                           ),
                         ),
                       ],
@@ -336,9 +374,11 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     );
   }
 
-  Widget _buildButtonGrid() {
+  Widget _buildButtonGrid({required bool compactMode}) {
+    final vGap = compactMode ? 6.0 : 10.0;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: EdgeInsets.fromLTRB(16, 4, 16, compactMode ? 12 : 20),
       child: Column(
         children: [
           _buildRow(['⤢', 'AC', '⌫', '÷'], [
@@ -346,47 +386,48 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
             _BtnStyle.green,
             _BtnStyle.green,
             _BtnStyle.orange,
-          ]),
-          const SizedBox(height: 12),
+          ], compactMode),
+          SizedBox(height: vGap),
           _buildRow(['7', '8', '9', '×'], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.orange,
-          ]),
-          const SizedBox(height: 12),
+          ], compactMode),
+          SizedBox(height: vGap),
           _buildRow(['4', '5', '6', '-'], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.orange,
-          ]),
-          const SizedBox(height: 12),
+          ], compactMode),
+          SizedBox(height: vGap),
           _buildRow(['1', '2', '3', '+'], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.orange,
-          ]),
-          const SizedBox(height: 12),
+          ], compactMode),
+          SizedBox(height: vGap),
           _buildRow(['0', '00', ',', '='], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
-            _BtnStyle.coral, // Tombol samadengan oranye coral/salmon
-          ]),
+            _BtnStyle.coral,
+          ], compactMode),
         ],
       ),
     );
   }
 
-  Widget _buildRow(List<String> labels, List<_BtnStyle> styles) {
+  Widget _buildRow(List<String> labels, List<_BtnStyle> styles, bool compactMode) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(labels.length, (i) {
         return _CalcRoundButton(
           label: labels[i],
           style: styles[i],
+          compactMode: compactMode,
           onTap: () => _onButton(labels[i]),
         );
       }),
@@ -395,7 +436,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
 }
 
 // ---------------------------------------------------------------------------
-// Gaya Tombol Bulat Lingkaran
+// Gaya Tombol Bulat Lingkaran (With Responsive Constraints & Hover State)
 // ---------------------------------------------------------------------------
 
 enum _BtnStyle { white, green, orange, coral }
@@ -405,11 +446,13 @@ class _CalcRoundButton extends StatefulWidget {
     required this.label,
     required this.style,
     required this.onTap,
+    this.compactMode = false,
   });
 
   final String label;
   final _BtnStyle style;
   final VoidCallback onTap;
+  final bool compactMode;
 
   @override
   State<_CalcRoundButton> createState() => _CalcRoundButtonState();
@@ -418,6 +461,7 @@ class _CalcRoundButton extends StatefulWidget {
 class _CalcRoundButtonState extends State<_CalcRoundButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -440,13 +484,13 @@ class _CalcRoundButtonState extends State<_CalcRoundButton>
   Color get _bgColor {
     switch (widget.style) {
       case _BtnStyle.white:
-        return const Color(0xFFFAFAFA);
+        return _isHovered ? const Color(0xFFEBEBEB) : const Color(0xFFFAFAFA);
       case _BtnStyle.green:
-        return const Color(0xFF28C734);
+        return _isHovered ? const Color(0xFF22B22D) : const Color(0xFF28C734);
       case _BtnStyle.orange:
-        return const Color(0xFFFB9403);
+        return _isHovered ? const Color(0xFFE58500) : const Color(0xFFFB9403);
       case _BtnStyle.coral:
-        return const Color(0xFFFF6F37);
+        return _isHovered ? const Color(0xFFE65D29) : const Color(0xFFFF6F37);
     }
   }
 
@@ -461,51 +505,65 @@ class _CalcRoundButtonState extends State<_CalcRoundButton>
 
   @override
   Widget build(BuildContext context) {
-    // Tombol responsif berbentuk lingkaran sempurna
-    final size = (MediaQuery.of(context).size.width - 32 - 36) / 4;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final parentWidth = Responsive.widthOf(context).clamp(280.0, 480.0);
+        final rawSize = (parentWidth - 32 - 36) / 4;
+        final size = widget.compactMode ? rawSize.clamp(42.0, 56.0) : rawSize.clamp(44.0, 68.0);
 
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: _bgColor,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: ScaleTransition(
+            scale: _ctrl,
+            child: GestureDetector(
+              onTapDown: (_) => _ctrl.reverse(),
+              onTapUp: (_) {
+                _ctrl.forward();
+                widget.onTap();
+              },
+              onTapCancel: () => _ctrl.forward(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: _bgColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: _isHovered ? 0.14 : 0.06),
+                      blurRadius: _isHovered ? 8 : 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: _buildLabel(size),
+                ),
               ),
-            ],
+            ),
           ),
-          child: Center(
-            child: _buildLabel(),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildLabel() {
+  Widget _buildLabel(double buttonSize) {
+    final iconSize = (buttonSize * 0.42).clamp(18.0, 26.0);
+    final fontBase = (buttonSize * 0.46).clamp(18.0, 28.0);
+
     if (widget.label == '⌫') {
-      return const Icon(Icons.backspace_outlined, color: Colors.black87, size: 26);
+      return Icon(Icons.backspace_outlined, color: Colors.black87, size: iconSize);
     }
     if (widget.label == '⤢') {
-      return const Icon(Icons.open_in_full_rounded, color: Colors.black87, size: 24);
+      return Icon(Icons.open_in_full_rounded, color: Colors.black87, size: iconSize * 0.9);
     }
     return Text(
       widget.label,
       style: TextStyle(
-        fontSize: widget.label.length > 1 ? 24 : 30,
+        fontSize: widget.label.length > 1 ? fontBase * 0.8 : fontBase,
         color: _textColor,
         fontWeight: FontWeight.w600,
       ),
@@ -514,7 +572,7 @@ class _CalcRoundButtonState extends State<_CalcRoundButton>
 }
 
 // ---------------------------------------------------------------------------
-// Animasi Confetti Bintang
+// Animasi Confetti Bintang (Unchanged)
 // ---------------------------------------------------------------------------
 
 class _StarBurstPainter extends CustomPainter {

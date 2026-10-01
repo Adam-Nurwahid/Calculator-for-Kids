@@ -35,3 +35,12 @@ flutter:
   # via Image.asset('assets/<filename>.png').
   assets:
     - assets/
+    - assets/fonts/
+    - assets/ic_cal_advance/
+
+  fonts:
+    - family: GothamRounded
+      fonts:
+        - asset: assets/fonts/Gotham Rounded Light.otf
+          weight: 300
+

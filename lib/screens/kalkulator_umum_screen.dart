@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/calculator_umum_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 import 'kalkulator_tingkat_lanjut_screen.dart';
-
 
 /// Kalkulator Umum — full-featured calculator with:
 ///   • Light / Dark mode toggle
@@ -14,6 +15,7 @@ import 'kalkulator_tingkat_lanjut_screen.dart';
 ///   • Percentage %
 ///   • DEG / RAD mode
 ///   • Live result preview
+///   • Fully responsive for phones, tablets, and desktop/web with keyboard input
 class KalkulatorUmumScreen extends StatefulWidget {
   const KalkulatorUmumScreen({super.key});
 
@@ -93,6 +95,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
       switch (value) {
         case 'AC':
+        case 'C':
           _expression = '';
           _result = '';
           _isError = false;
@@ -124,7 +127,6 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
           return;
 
         case ',':
-        // Decimal point
           if (_canAppend('.')) {
             _expression += '.';
             _isError = false;
@@ -199,24 +201,57 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main calculator UI
-            Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 8),
-                Expanded(child: _buildDisplay()),
-                _buildButtonGrid(),
-              ],
-            ),
+      body: CalcResponsiveContainer(
+        backgroundColor: _bgColor,
+        maxWidth: 480,
+        onKeyInput: _onButton,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 540;
 
-            // History overlay
-            if (_showHistory) _buildHistoryPanel(),
-          ],
+                  if (isLandscape || isCompactHeight) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Column(
+                          children: [
+                            _buildTopBar(),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              height: 120,
+                              child: _buildDisplay(),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildButtonGrid(),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 8),
+                      Expanded(child: _buildDisplay()),
+                      _buildButtonGrid(),
+                    ],
+                  );
+                },
+              ),
+
+              // History overlay
+              if (_showHistory) _buildHistoryPanel(),
+            ],
+          ),
         ),
       ),
     );
@@ -226,7 +261,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
   Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -330,15 +365,15 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
         return Transform.translate(offset: Offset(dx, 0), child: child);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Expression
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              reverse: true,
+            FittedBox(
+              alignment: Alignment.centerRight,
+              fit: BoxFit.scaleDown,
               child: Text(
                 _expression.isEmpty ? '0' : _expression,
                 style: TextStyle(
@@ -349,24 +384,27 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             // Live result / answer
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               child: _result.isEmpty
-                  ? const SizedBox(height: 32, key: ValueKey('empty'))
-                  : Text(
-                _result,
-                key: ValueKey(_result),
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                  color:
-                  _isError ? Colors.redAccent : _resultColor,
-                ),
-              ),
+                  ? const SizedBox(height: 28, key: ValueKey('empty'))
+                  : FittedBox(
+                      alignment: Alignment.centerRight,
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        _result,
+                        key: ValueKey(_result),
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w400,
+                          color: _isError ? Colors.redAccent : _resultColor,
+                        ),
+                      ),
+                    ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -377,7 +415,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
   Widget _buildButtonGrid() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
       child: Column(
         children: [
           _buildRow([
@@ -419,7 +457,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
     );
   }
 
-  Widget _gap() => const SizedBox(height: 10);
+  Widget _gap() => const SizedBox(height: 8);
 
   Widget _buildRow(List<_Btn> btns) {
     return Row(
@@ -448,7 +486,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: AspectRatio(
           aspectRatio: 1.0,
           child: _CalcButton(
@@ -475,40 +513,16 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
   Widget _buildEqualBtn() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 3),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Height matches a single standard 1:1 circle button width
-          final h = (constraints.maxWidth - 8) / 2;
+          final h = (constraints.maxWidth - 6) / 2;
           return SizedBox(
             height: h,
-            child: GestureDetector(
+            child: _CalcEqualButton(
               onTap: () => _onButton('='),
-              child: _PressableContainer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: _kOrange,
-                    borderRadius: BorderRadius.circular(h / 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _kOrange.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '=',
-                      style: TextStyle(
-                        fontSize: 30,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              height: h,
             ),
           );
         },
@@ -552,12 +566,12 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
               curve: Curves.easeOut,
               width: double.infinity,
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,
                 borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -675,47 +689,7 @@ class _Btn {
 }
 
 // ---------------------------------------------------------------------------
-// Pressable / animated button container
-// ---------------------------------------------------------------------------
-
-class _PressableContainer extends StatefulWidget {
-  const _PressableContainer({required this.child});
-  final Widget child;
-
-  @override
-  State<_PressableContainer> createState() => _PressableContainerState();
-}
-
-class _PressableContainerState extends State<_PressableContainer>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 80),
-      lowerBound: 0.92,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(scale: _ctrl, child: widget.child);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Individual calculator button
+// Individual calculator button with mouse hover effect
 // ---------------------------------------------------------------------------
 
 class _CalcButton extends StatefulWidget {
@@ -738,6 +712,7 @@ class _CalcButton extends StatefulWidget {
 class _CalcButtonState extends State<_CalcButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -759,28 +734,36 @@ class _CalcButtonState extends State<_CalcButton>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.bgColor,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.07),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
+                  : widget.bgColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: _isHovered ? 0.14 : 0.07),
+                  blurRadius: _isHovered ? 6 : 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(child: _buildLabel()),
           ),
-          child: Center(child: _buildLabel()),
         ),
       ),
     );
@@ -796,7 +779,7 @@ class _CalcButtonState extends State<_CalcButton>
     return Text(
       widget.label,
       style: TextStyle(
-        fontSize: widget.label.length > 2 ? 16 : (widget.label.length > 1 ? 20 : 26),
+        fontSize: widget.label.length > 2 ? 15 : (widget.label.length > 1 ? 19 : 24),
         color: widget.fgColor,
         fontWeight: FontWeight.w600,
       ),
@@ -804,11 +787,90 @@ class _CalcButtonState extends State<_CalcButton>
   }
 }
 
+class _CalcEqualButton extends StatefulWidget {
+  const _CalcEqualButton({required this.onTap, required this.height});
+  final VoidCallback onTap;
+  final double height;
+
+  @override
+  State<_CalcEqualButton> createState() => _CalcEqualButtonState();
+}
+
+class _CalcEqualButtonState extends State<_CalcEqualButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 80),
+      lowerBound: 0.92,
+      upperBound: 1.0,
+      value: 1.0,
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const kOrange = Color(0xFFFB9403);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered ? const Color(0xFFFF9E1B) : kOrange,
+              borderRadius: BorderRadius.circular(widget.height / 2),
+              boxShadow: [
+                BoxShadow(
+                  color: kOrange.withValues(alpha: _isHovered ? 0.6 : 0.4),
+                  blurRadius: _isHovered ? 14 : 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                '=',
+                style: TextStyle(
+                  fontSize: 28,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
-// Small icon button (top-bar)
+// Small icon button (top-bar with hover effect)
 // ---------------------------------------------------------------------------
 
-class _IconBtn extends StatelessWidget {
+class _IconBtn extends StatefulWidget {
   const _IconBtn({
     required this.icon,
     required this.color,
@@ -820,12 +882,29 @@ class _IconBtn extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_IconBtn> createState() => _IconBtnState();
+}
+
+class _IconBtnState extends State<_IconBtn> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Icon(icon, color: color, size: 26),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _isHovered ? widget.color.withValues(alpha: 0.12) : Colors.transparent,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(widget.icon, color: widget.color, size: 24),
+        ),
       ),
     );
   }

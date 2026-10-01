@@ -1,6 +1,7 @@
 // lib/screens/rumus/rumus_menu_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 
 // ─── Data Model ──────────────────────────────────────────────────────────────
 
@@ -106,245 +107,266 @@ class _RumusMenuScreenState extends State<RumusMenuScreen> {
     const Color cardOrange = Color(0xFFFF941A);
     const Color arrowColor = Color(0xFFD65C00);
 
+    final isLandscape = context.isLandscape;
+    final screenWidth = context.screenWidth;
+    final maxContainerWidth = Responsive.maxContainerWidth(screenWidth).clamp(0.0, 540.0);
+
     return Scaffold(
       backgroundColor: bgCream,
-      body: Stack(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                const SizedBox(height: 18),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxContainerWidth),
+          child: Stack(
+            children: [
+              SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    SizedBox(height: isLandscape ? 8 : 14),
 
-                // 1. Maskot Kucing (Statis di atas card)
-                SizedBox(
-                  height: 135,
-                  child: Image.asset(
-                    _mascotAsset,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-
-                // 2. Kontainer Oranye Utama
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: cardOrange,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(36),
-                        topRight: Radius.circular(36),
+                    // 1. Maskot Kucing (Adaptive height)
+                    SizedBox(
+                      height: isLandscape ? 85 : 125,
+                      child: Image.asset(
+                        _mascotAsset,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
-                    child: Column(
-                      children: [
-                        // Judul (Statis, tidak ikut tergeser)
-                        const Text(
-                          'Pilih Materi\nPembelajaranmu',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Fredoka One',
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            height: 1.25,
+
+                    // 2. Kontainer Oranye Utama
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: cardOrange,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(36),
+                            topRight: Radius.circular(36),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        padding: EdgeInsets.fromLTRB(20, isLandscape ? 16 : 24, 20, 14),
+                        child: Column(
+                          children: [
+                            // Judul (Statis)
+                            Text(
+                              'Pilih Materi\nPembelajaranmu',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Fredoka One',
+                                fontSize: isLandscape ? 20 : 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                height: 1.25,
+                              ),
+                            ),
+                            SizedBox(height: isLandscape ? 10 : 16),
 
-                        // 3. PageView HANYA untuk Pilihan Menu
-                        Expanded(
-                          child: PageView.builder(
-                            controller: _pageCtrl,
-                            onPageChanged: (index) {
-                              setState(() => _currentPage = index);
-                            },
-                            itemCount: _tiers.length,
-                            itemBuilder: (context, pageIndex) {
-                              final tier = _tiers[pageIndex];
-                              return ListView.separated(
-                                physics: const BouncingScrollPhysics(),
-                                itemCount: tier.items.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                itemBuilder: (ctx, itemIndex) {
-                                  final item = tier.items[itemIndex];
-                                  return _MaterialButton(
-                                    label: item.label,
-                                    onTap: () => Navigator.pushNamed(ctx, item.route),
+                            // 3. PageView HANYA untuk Pilihan Menu
+                            Expanded(
+                              child: PageView.builder(
+                                controller: _pageCtrl,
+                                onPageChanged: (index) {
+                                  setState(() => _currentPage = index);
+                                },
+                                itemCount: _tiers.length,
+                                itemBuilder: (context, pageIndex) {
+                                  final tier = _tiers[pageIndex];
+                                  return ListView.separated(
+                                    physics: const BouncingScrollPhysics(),
+                                    itemCount: tier.items.length,
+                                    separatorBuilder: (context, index) => const SizedBox(height: 10),
+                                    itemBuilder: (ctx, itemIndex) {
+                                      final item = tier.items[itemIndex];
+                                      return _MaterialButton(
+                                        label: item.label,
+                                        onTap: () => Navigator.pushNamed(ctx, item.route),
+                                      );
+                                    },
                                   );
                                 },
-                              );
-                            },
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // 4. Bagian Bawah: Indikator 3 Dots + Panah Navigasi Aktif
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // 3 Dots di tengah (Anak, Umum 1, Umum 2)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(_tiers.length, (index) {
-                                final isActive = index == _currentPage;
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: isActive
-                                        ? arrowColor
-                                        : arrowColor.withValues(alpha: 0.35),
-                                    shape: BoxShape.circle,
-                                  ),
-                                );
-                              }),
+                              ),
                             ),
 
-                            // Panah Kiri dan Kanan yang Berfungsi
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: Icon(
-                                      Icons.arrow_left_rounded,
-                                      size: 38,
-                                      color: _currentPage > 0
-                                          ? arrowColor
-                                          : arrowColor.withValues(alpha: 0.25),
-                                    ),
-                                    onPressed: _currentPage > 0
-                                        ? () => _goTo(_currentPage - 1)
-                                        : null,
+                            const SizedBox(height: 10),
+
+                            // 4. Bagian Bawah: Indikator 3 Dots + Panah Navigasi Aktif
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // 3 Dots di tengah
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(_tiers.length, (index) {
+                                    final isActive = index == _currentPage;
+                                    return AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: isActive
+                                            ? arrowColor
+                                            : arrowColor.withValues(alpha: 0.35),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    );
+                                  }),
+                                ),
+
+                                // Panah Kiri dan Kanan yang Berfungsi
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: Icon(
+                                          Icons.arrow_left_rounded,
+                                          size: 38,
+                                          color: _currentPage > 0
+                                              ? arrowColor
+                                              : arrowColor.withValues(alpha: 0.25),
+                                        ),
+                                        onPressed: _currentPage > 0
+                                            ? () => _goTo(_currentPage - 1)
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: Icon(
+                                          Icons.arrow_right_rounded,
+                                          size: 38,
+                                          color: _currentPage < _tiers.length - 1
+                                              ? arrowColor
+                                              : arrowColor.withValues(alpha: 0.25),
+                                        ),
+                                        onPressed: _currentPage < _tiers.length - 1
+                                            ? () => _goTo(_currentPage + 1)
+                                            : null,
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: Icon(
-                                      Icons.arrow_right_rounded,
-                                      size: 38,
-                                      color: _currentPage < _tiers.length - 1
-                                          ? arrowColor
-                                          : arrowColor.withValues(alpha: 0.25),
-                                    ),
-                                    onPressed: _currentPage < _tiers.length - 1
-                                        ? () => _goTo(_currentPage + 1)
-                                        : null,
-                                  ),
-                                ],
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            // Footer Text
+                            const Text(
+                              'Materi bisa diubah kapan pun',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF5A3E22),
                               ),
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-                        const SizedBox(height: 12),
-
-                        // Footer Text
-                        const Text(
-                          'Materi bisa diubah kapan pun',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF5A3E22),
+              // ── Tombol Back (Kiri Atas) ──────────────────────────────────────
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 12),
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                      ],
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Color(0xFF333333),
+                        size: 22,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // ── Tombol Back (Kiri Atas) ──────────────────────────────────────
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, top: 12),
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: Color(0xFF333333),
-                    size: 22,
-                  ),
-                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// ─── Tombol Pill Materi ───────────────────────────────────────────────────────
+// ─── Tombol Pill Materi (with Mouse Hover Support) ─────────────────────────────
 
-class _MaterialButton extends StatelessWidget {
+class _MaterialButton extends StatefulWidget {
   const _MaterialButton({required this.label, required this.onTap});
   final String label;
   final VoidCallback onTap;
 
   @override
+  State<_MaterialButton> createState() => _MaterialButtonState();
+}
+
+class _MaterialButtonState extends State<_MaterialButton> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF9E8),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 4,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          color: _isHovered ? Colors.white : const Color(0xFFFFF9E8),
           borderRadius: BorderRadius.circular(28),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: _isHovered ? 0.16 : 0.10),
+              blurRadius: _isHovered ? 8 : 4,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(28),
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.label,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                const Icon(
-                  Icons.arrow_right_rounded,
-                  color: Colors.black,
-                  size: 26,
-                ),
-              ],
+                  const Icon(
+                    Icons.arrow_right_rounded,
+                    color: Colors.black,
+                    size: 26,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

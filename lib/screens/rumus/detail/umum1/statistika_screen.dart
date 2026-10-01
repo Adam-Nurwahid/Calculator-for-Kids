@@ -119,7 +119,7 @@ class _CompleteStatExample extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        _StatResult(label: 'Diurutkan:', value: '${sorted.join(", ")}'),
+        _StatResult(label: 'Diurutkan:', value: sorted.join(", ")),
         _StatResult(
           label: 'Mean:',
           value:

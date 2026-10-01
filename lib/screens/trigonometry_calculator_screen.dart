@@ -1,14 +1,11 @@
 // lib/screens/trigonometry_calculator_screen.dart
-//
-// "Kalkulator Trigonometri" — reachable from the Trigonometri tile on the
-// Kalkulator Tingkat Lanjut menu. The user picks Sin / Cos / Tan, then types
-// the argument like a normal calculator (e.g. picking "Cos" and typing
-// "60 + 30" shows "Cos(60 + 30)" and live-evaluates it).
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/trigonometry_calculator_logic.dart';
+import '../utils/responsive.dart';
+import '../widgets/calc_responsive_container.dart';
 
 class TrigonometryCalculatorScreen extends StatefulWidget {
   final bool isDarkInit;
@@ -40,7 +37,6 @@ class _TrigonometryCalculatorScreenState
 
   // ── Colors ────────────────────────────────────────────────────────────────
   Color get _bgColor => _isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFFFBE7);
-  Color get _cardBg => _isDark ? const Color(0xFF1E1E1E) : Colors.white;
   Color get _textColor => _isDark ? Colors.white : const Color(0xFF1A1A1A);
   Color get _subTextColor => _isDark ? const Color(0xFFA0A0A0) : const Color(0xFF666666);
   Color get _btnNumBg => _isDark ? const Color(0xFF222222) : const Color(0xFFF2F2F7);
@@ -54,6 +50,7 @@ class _TrigonometryCalculatorScreenState
     setState(() {
       switch (val) {
         case 'AC':
+        case 'C':
           _state.clearAll();
           break;
 
@@ -66,7 +63,6 @@ class _TrigonometryCalculatorScreenState
           break;
 
         default:
-          // Digits, '.', '(', ')', '%', '+', '-', '×', '÷', '00'
           _state.append(val);
           break;
       }
@@ -82,30 +78,58 @@ class _TrigonometryCalculatorScreenState
         _history.insert(0, _TrigHistoryEntry(_state.displayExpression, res.display));
       });
     }
-    // Errors are already reflected by _buildResultDisplay reading _state.evaluate()
-    // again on rebuild, so nothing else to do here for the error case.
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 4),
-                _buildFnTabs(),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDisplayArea()),
-                _buildKeypad(),
-              ],
-            ),
-            if (_showHistory) _buildHistoryPanel(),
-          ],
+      body: CalcResponsiveContainer(
+        backgroundColor: _bgColor,
+        maxWidth: 480,
+        onKeyInput: _onKeypad,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompactHeight = constraints.maxHeight < 560;
+
+                  if (isLandscape || isCompactHeight) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          _buildTopBar(),
+                          const SizedBox(height: 4),
+                          _buildFnTabs(),
+                          const SizedBox(height: 8),
+                          _buildDisplayArea(),
+                          const SizedBox(height: 8),
+                          _buildKeypad(),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 4),
+                      _buildFnTabs(),
+                      const SizedBox(height: 8),
+                      Expanded(child: Center(child: _buildDisplayArea())),
+                      _buildKeypad(),
+                    ],
+                  );
+                },
+              ),
+              if (_showHistory) _buildHistoryPanel(),
+            ],
+          ),
         ),
       ),
     );
@@ -419,7 +443,7 @@ class _TrigonometryCalculatorScreenState
             onTap: () {}, // Absorb clicks
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,
@@ -594,6 +618,7 @@ class _KeypadButton extends StatefulWidget {
 class _KeypadButtonState extends State<_KeypadButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -615,21 +640,29 @@ class _KeypadButtonState extends State<_KeypadButton>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _ctrl,
-      child: GestureDetector(
-        onTapDown: (_) => _ctrl.reverse(),
-        onTapUp: (_) {
-          _ctrl.forward();
-          widget.onTap();
-        },
-        onTapCancel: () => _ctrl.forward(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.bgColor,
-            borderRadius: BorderRadius.circular(20),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ScaleTransition(
+        scale: _ctrl,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.reverse(),
+          onTapUp: (_) {
+            _ctrl.forward();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.forward(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
+                  : widget.bgColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Center(child: _buildLabel()),
           ),
-          child: Center(child: _buildLabel()),
         ),
       ),
     );

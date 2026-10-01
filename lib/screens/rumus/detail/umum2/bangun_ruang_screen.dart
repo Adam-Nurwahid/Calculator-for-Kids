@@ -336,11 +336,6 @@ class _BangunRuangPainter extends CustomPainter {
     canvas.drawPath(frontPath, _fill(col));
     canvas.drawPath(frontPath, _stroke(col));
     // Back triangle (offset)
-    final backPath = Path()
-      ..moveTo(cx + d, cy - hh - d)
-      ..lineTo(cx - hw + d, cy + hh - d)
-      ..lineTo(cx + hw + d, cy + hh - d)
-      ..close();
     _dashed(canvas, Offset(cx + d, cy - hh - d),
         Offset(cx - hw + d, cy + hh - d), _dash(col));
     _dashed(canvas, Offset(cx - hw + d, cy + hh - d),

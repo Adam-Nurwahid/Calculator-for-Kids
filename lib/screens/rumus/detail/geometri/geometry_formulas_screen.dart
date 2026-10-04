@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../widgets/rumus_widgets.dart';
-import '../anak/bangun_datar_screen.dart';
-import '../umum2/bangun_ruang_screen.dart';
 import '../umum1/pecahan_screen.dart';
 import '../umum1/pangkat_screen.dart';
 import '../umum1/konversi_persen_screen.dart';
-import '../umum2/akar_kuadrat_screen.dart';
+import '../umum1/peluang_screen.dart';
+import '../umum1/aljabar_screen.dart';
+import '../umum1/statistika_screen.dart';
 
 class GeometryFormulasScreen extends StatefulWidget {
   const GeometryFormulasScreen({
@@ -28,18 +28,6 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
 
   static const List<NavOpData> _geometryNavItems = [
     NavOpData(
-      label: 'Bangun Datar',
-      icon: Icons.crop_square_rounded,
-      color: Color(0xFF00BCD4),
-      route: '/rumus/geometri/bangun-datar',
-    ),
-    NavOpData(
-      label: 'Bangun Ruang',
-      icon: Icons.view_in_ar,
-      color: Color(0xFFFF7043),
-      route: '/rumus/geometri/bangun-ruang',
-    ),
-    NavOpData(
       label: 'Pecahan',
       symbol: '½',
       color: Color(0xFF4A9FE8),
@@ -58,10 +46,22 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
       route: '/rumus/geometri/konversi-persen',
     ),
     NavOpData(
-      label: 'Akar Kuadrat',
-      symbol: '√x',
-      color: Color(0xFF00BFA5),
-      route: '/rumus/geometri/akar-kuadrat',
+      label: 'Peluang',
+      icon: Icons.casino_rounded,
+      color: Color(0xFF5AC8FA),
+      route: '/rumus/umum1/peluang',
+    ),
+    NavOpData(
+      label: 'Aljabar',
+      icon: Icons.trending_up_rounded,
+      color: Color(0xFF4CD964),
+      route: '/rumus/anak/aljabar',
+    ),
+    NavOpData(
+      label: 'Statistika',
+      icon: Icons.bar_chart_rounded,
+      color: Color(0xFFFCA33B),
+      route: '/rumus/umum1/statistika',
     ),
   ];
 
@@ -96,7 +96,7 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
         children: [
           // Fixed Top Header Banner & Category Selector Bar
           RumusHeader(
-            title: 'Geometri &\nMatematika Menengah',
+            title: ' Matematika Tingkat Lanjut',
             activeOpIndex: _currentIndex,
             showNav: true,
             onOpTabSelected: _onTabSelected,
@@ -113,12 +113,12 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
                 });
               },
               children: const [
-                BangunDatarScreen(),
-                BangunRuangScreen(),
                 PecahanScreen(),
                 PangkatScreen(),
                 KonversiPersenScreen(),
-                AkarKuadratScreen(),
+                PeluangScreen(),
+                AljabarScreen(),
+                StatistikaScreen(),
               ],
             ),
           ),

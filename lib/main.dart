@@ -51,28 +51,61 @@ class KalkulatorKidsApp extends StatelessWidget {
         '/rumus': (context) => const RumusMenuScreen(),
 
         // ── Rumus Category 1: Operasi Dasar ─────────────────────────────
-        '/rumus/anak/penjumlahan':  (context) => const BasicFormulasScreen(initialIndex: 0),
-        '/rumus/anak/pengurangan':  (context) => const BasicFormulasScreen(initialIndex: 1),
-        '/rumus/anak/perkalian':    (context) => const BasicFormulasScreen(initialIndex: 2),
-        '/rumus/anak/pembagian':    (context) => const BasicFormulasScreen(initialIndex: 3),
-        '/rumus/anak/tanda-kurung': (context) => const BasicFormulasScreen(initialIndex: 4),
-        '/rumus/anak/aljabar':      (context) => const BasicFormulasScreen(initialIndex: 5),
+        '/rumus/anak/penjumlahan': (context) =>
+        const BasicFormulasScreen(initialIndex: 0),
+
+        '/rumus/anak/pengurangan': (context) =>
+        const BasicFormulasScreen(initialIndex: 1),
+
+        '/rumus/anak/perkalian': (context) =>
+        const BasicFormulasScreen(initialIndex: 2),
+
+        '/rumus/anak/pembagian': (context) =>
+        const BasicFormulasScreen(initialIndex: 3),
+
+        '/rumus/anak/tanda-kurung': (context) =>
+        const BasicFormulasScreen(initialIndex: 4),
+
+        '/rumus/anak/bangun-datar': (context) =>
+        const BasicFormulasScreen(initialIndex: 5),
 
         // ── Rumus Category 2: Geometri & Matematika Menengah ──────────────
-        '/rumus/geometri/bangun-datar':(context) => const GeometryFormulasScreen(initialIndex: 0),
-        '/rumus/geometri/bangun-ruang':(context) => const GeometryFormulasScreen(initialIndex: 1),
-        '/rumus/geometri/pecahan':     (context) => const GeometryFormulasScreen(initialIndex: 2),
-        '/rumus/geometri/pangkat':     (context) => const GeometryFormulasScreen(initialIndex: 3),
-        '/rumus/geometri/konversi-persen':(context) => const GeometryFormulasScreen(initialIndex: 4),
-        '/rumus/geometri/akar-kuadrat':(context) => const GeometryFormulasScreen(initialIndex: 5),
+        '/rumus/geometri/pecahan': (context) =>
+        const GeometryFormulasScreen(initialIndex: 0),
+
+        '/rumus/geometri/pangkat': (context) =>
+        const GeometryFormulasScreen(initialIndex: 1),
+
+        '/rumus/geometri/konversi-persen': (context) =>
+        const GeometryFormulasScreen(initialIndex: 2),
+
+        '/rumus/umum1/peluang': (context) =>
+        const GeometryFormulasScreen(initialIndex: 3),
+
+        '/rumus/anak/aljabar': (context) =>
+        const GeometryFormulasScreen(initialIndex: 4),
+
+        '/rumus/umum1/statistika': (context) =>
+        const GeometryFormulasScreen(initialIndex: 5),
 
         // ── Rumus Category 3: Matematika Tingkat Lanjut ──────────────────
-        '/rumus/umum1/trigonometri':(context) => const AdvancedFormulasScreen(initialIndex: 0),
-        '/rumus/umum1/deg-rad':     (context) => const AdvancedFormulasScreen(initialIndex: 1),
-        '/rumus/umum1/logaritma':   (context) => const AdvancedFormulasScreen(initialIndex: 2),
-        '/rumus/umum1/peluang':     (context) => const AdvancedFormulasScreen(initialIndex: 3),
-        '/rumus/umum1/statistika':  (context) => const AdvancedFormulasScreen(initialIndex: 4),
-        '/rumus/umum1/barisan-deret':(context) => const AdvancedFormulasScreen(initialIndex: 5),
+        '/rumus/geometri/bangun-ruang': (context) =>
+        const AdvancedFormulasScreen(initialIndex: 0),
+
+        '/rumus/umum1/trigonometri': (context) =>
+        const AdvancedFormulasScreen(initialIndex: 1),
+
+        '/rumus/umum1/logaritma': (context) =>
+        const AdvancedFormulasScreen(initialIndex: 2),
+
+        '/rumus/geometri/akar-kuadrat': (context) =>
+        const AdvancedFormulasScreen(initialIndex: 3),
+
+        '/rumus/umum1/deg-rad': (context) =>
+        const AdvancedFormulasScreen(initialIndex: 4),
+
+        '/rumus/umum1/barisan-deret': (context) =>
+        const AdvancedFormulasScreen(initialIndex: 5),
 
         // ── Legacy / Alias Routes ─────────────────────────────────────────
         '/rumus/umum1/pecahan':        (context) => const GeometryFormulasScreen(initialIndex: 2),

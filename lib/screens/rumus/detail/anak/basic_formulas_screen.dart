@@ -8,7 +8,7 @@ import 'pengurangan_screen.dart';
 import 'perkalian_screen.dart';
 import 'pembagian_screen.dart';
 import 'tanda_kurung_screen.dart';
-import '../umum1/aljabar_screen.dart';
+import 'bangun_datar_screen.dart';
 
 class BasicFormulasScreen extends StatefulWidget {
   const BasicFormulasScreen({
@@ -58,10 +58,10 @@ class _BasicFormulasScreenState extends State<BasicFormulasScreen> {
       route: '/rumus/anak/tanda-kurung',
     ),
     NavOpData(
-      label: 'Aljabar',
-      icon: Icons.trending_up_rounded,
-      color: Color(0xFF4CD964),
-      route: '/rumus/anak/aljabar',
+      label: 'Bangun Datar',
+      icon: Icons.crop_square_rounded,
+      color: Color(0xFF00BCD4),
+      route: '/rumus/anak/bangun-datar',
     ),
   ];
 
@@ -118,7 +118,7 @@ class _BasicFormulasScreenState extends State<BasicFormulasScreen> {
                 PerkalianScreen(),
                 PembagianScreen(),
                 TandaKurungScreen(),
-                AljabarScreen(),
+                BangunDatarScreen(),
               ],
             ),
           ),

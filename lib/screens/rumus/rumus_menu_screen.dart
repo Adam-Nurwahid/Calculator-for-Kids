@@ -24,42 +24,96 @@ class _MateriItem {
 // ─── 3 Halaman Tier Data ─────────────────────────────────────────────────────
 
 const List<_TierData> _tiers = [
-  // Halaman 1: Operasi Dasar (6 item)
+  // ─── 1. Operasi Dasar ─────────────────────────────────────────────────
   _TierData(
     label: 'Operasi Dasar',
     items: [
-      _MateriItem(label: 'Penjumlahan', route: '/rumus/anak/penjumlahan'),
-      _MateriItem(label: 'Pengurangan', route: '/rumus/anak/pengurangan'),
-      _MateriItem(label: 'Perkalian', route: '/rumus/anak/perkalian'),
-      _MateriItem(label: 'Pembagian', route: '/rumus/anak/pembagian'),
-      _MateriItem(label: 'Tanda Kurung', route: '/rumus/anak/tanda-kurung'),
-      _MateriItem(label: 'Aljabar', route: '/rumus/anak/aljabar'),
+      _MateriItem(
+        label: 'Penjumlahan',
+        route: '/rumus/anak/penjumlahan',
+      ),
+      _MateriItem(
+        label: 'Pengurangan',
+        route: '/rumus/anak/pengurangan',
+      ),
+      _MateriItem(
+        label: 'Perkalian',
+        route: '/rumus/anak/perkalian',
+      ),
+      _MateriItem(
+        label: 'Pembagian',
+        route: '/rumus/anak/pembagian',
+      ),
+      _MateriItem(
+        label: 'Tanda Kurung',
+        route: '/rumus/anak/tanda-kurung',
+      ),
+      _MateriItem(
+        label: 'Bangun Datar',
+        route: '/rumus/anak/bangun-datar',
+      ),
     ],
   ),
 
-  // Halaman 2: Geometri & Matematika Menengah (6 item)
+  // ─── 2. Matematika Menengah ────────────────────────────────────────────
   _TierData(
-    label: 'Geometri & Matematika Menengah',
+    label: 'Matematika Menengah',
     items: [
-      _MateriItem(label: 'Bangun Datar', route: '/rumus/geometri/bangun-datar'),
-      _MateriItem(label: 'Bangun Ruang', route: '/rumus/geometri/bangun-ruang'),
-      _MateriItem(label: 'Pecahan', route: '/rumus/geometri/pecahan'),
-      _MateriItem(label: 'Pangkat', route: '/rumus/geometri/pangkat'),
-      _MateriItem(label: 'Konversi Persen', route: '/rumus/geometri/konversi-persen'),
-      _MateriItem(label: 'Akar Kuadrat', route: '/rumus/geometri/akar-kuadrat'),
+      _MateriItem(
+        label: 'Pecahan',
+        route: '/rumus/geometri/pecahan',
+      ),
+      _MateriItem(
+        label: 'Pangkat',
+        route: '/rumus/geometri/pangkat',
+      ),
+      _MateriItem(
+        label: 'Konversi Persen',
+        route: '/rumus/geometri/konversi-persen',
+      ),
+      _MateriItem(
+        label: 'Peluang',
+        route: '/rumus/umum1/peluang',
+      ),
+      _MateriItem(
+        label: 'Aljabar',
+        route: '/rumus/anak/aljabar',
+      ),
+      _MateriItem(
+        label: 'Statistika',
+        route: '/rumus/umum1/statistika',
+      ),
     ],
   ),
 
-  // Halaman 3: Matematika Tingkat Lanjut (6 item)
+  // ─── 3. Matematika Tingkat Lanjut ──────────────────────────────────────
   _TierData(
     label: 'Matematika Tingkat Lanjut',
     items: [
-      _MateriItem(label: 'Trigonometri', route: '/rumus/umum1/trigonometri'),
-      _MateriItem(label: 'Deg/Rad', route: '/rumus/umum1/deg-rad'),
-      _MateriItem(label: 'Logaritma', route: '/rumus/umum1/logaritma'),
-      _MateriItem(label: 'Peluang', route: '/rumus/umum1/peluang'),
-      _MateriItem(label: 'Statistika', route: '/rumus/umum1/statistika'),
-      _MateriItem(label: 'Barisan & Deret', route: '/rumus/umum1/barisan-deret'),
+      _MateriItem(
+        label: 'Bangun Ruang',
+        route: '/rumus/geometri/bangun-ruang',
+      ),
+      _MateriItem(
+        label: 'Trigonometri',
+        route: '/rumus/umum1/trigonometri',
+      ),
+      _MateriItem(
+        label: 'Logaritma',
+        route: '/rumus/umum1/logaritma',
+      ),
+      _MateriItem(
+        label: 'Akar Kuadrat',
+        route: '/rumus/geometri/akar-kuadrat',
+      ),
+      _MateriItem(
+        label: 'Deg/Rad',
+        route: '/rumus/umum1/deg-rad',
+      ),
+      _MateriItem(
+        label: 'Barisan & Deret',
+        route: '/rumus/umum1/barisan-deret',
+      ),
     ],
   ),
 ];

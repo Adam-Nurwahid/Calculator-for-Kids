@@ -29,38 +29,32 @@ class _BasicFormulasScreenState extends State<BasicFormulasScreen> {
   static const List<NavOpData> _basicNavItems = [
     NavOpData(
       label: 'Penjumlahan',
-      symbol: '+',
-      color: AppColors.rumusAddColor,
+      assetPath: 'assets/ic_cal_advance/ic_plus.png',
       route: '/rumus/anak/penjumlahan',
     ),
     NavOpData(
       label: 'Pengurangan',
-      symbol: '−',
-      color: AppColors.rumusSubColor,
+      assetPath: 'assets/ic_cal_advance/ic_minus.png',
       route: '/rumus/anak/pengurangan',
     ),
     NavOpData(
       label: 'Perkalian',
-      symbol: '×',
-      color: AppColors.rumusMulColor,
+      assetPath: 'assets/ic_cal_advance/ic_kali.png',
       route: '/rumus/anak/perkalian',
     ),
     NavOpData(
       label: 'Pembagian',
-      symbol: '÷',
-      color: AppColors.rumusDivColor,
+      assetPath: 'assets/ic_cal_advance/ic_bagi.png',
       route: '/rumus/anak/pembagian',
     ),
     NavOpData(
       label: 'Tanda Kurung',
-      symbol: '( )',
-      color: AppColors.rumusBracketColor,
+      assetPath: 'assets/ic_cal_advance/ic_kurung.png',
       route: '/rumus/anak/tanda-kurung',
     ),
     NavOpData(
       label: 'Bangun Datar',
-      icon: Icons.crop_square_rounded,
-      color: Color(0xFF00BCD4),
+      assetPath: 'assets/ic_cal_advance/ic_datar.png',
       route: '/rumus/anak/bangun-datar',
     ),
   ];

@@ -29,38 +29,32 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
   static const List<NavOpData> _geometryNavItems = [
     NavOpData(
       label: 'Pecahan',
-      symbol: '½',
-      color: Color(0xFF4A9FE8),
+      assetPath: 'assets/ic_cal_advance/ic_pecahan2.png',
       route: '/rumus/geometri/pecahan',
     ),
     NavOpData(
       label: 'Pangkat',
-      symbol: 'xʸ',
-      color: Color(0xFFFF5252),
+      assetPath: 'assets/ic_cal_advance/ic_pangkat2.png',
       route: '/rumus/geometri/pangkat',
     ),
     NavOpData(
       label: 'Konversi Persen',
-      symbol: '%',
-      color: Color(0xFFD05CE3),
+      assetPath: 'assets/ic_cal_advance/ic_persen.png',
       route: '/rumus/geometri/konversi-persen',
     ),
     NavOpData(
       label: 'Peluang',
-      icon: Icons.casino_rounded,
-      color: Color(0xFF5AC8FA),
+      assetPath: 'assets/ic_cal_advance/ic_peluang.png',
       route: '/rumus/umum1/peluang',
     ),
     NavOpData(
       label: 'Aljabar',
-      icon: Icons.trending_up_rounded,
-      color: Color(0xFF4CD964),
+      assetPath: 'assets/ic_cal_advance/ic_aljabar.png',
       route: '/rumus/anak/aljabar',
     ),
     NavOpData(
       label: 'Statistika',
-      icon: Icons.bar_chart_rounded,
-      color: Color(0xFFFCA33B),
+      assetPath: 'assets/ic_cal_advance/ic_statistika.png',
       route: '/rumus/umum1/statistika',
     ),
   ];

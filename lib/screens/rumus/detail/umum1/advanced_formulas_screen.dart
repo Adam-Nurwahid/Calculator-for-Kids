@@ -6,8 +6,6 @@ import '../../../../widgets/rumus_widgets.dart';
 import '../umum2/trigonometri_screen.dart';
 import '../umum2/deg_rad_screen.dart';
 import '../umum2/logaritma_screen.dart';
-import 'peluang_screen.dart';
-import 'statistika_screen.dart';
 import '../umum2/barisan_deret_screen.dart';
 import '../umum2/bangun_ruang_screen.dart';
 import '../umum2/akar_kuadrat_screen.dart';
@@ -31,38 +29,32 @@ class _AdvancedFormulasScreenState extends State<AdvancedFormulasScreen> {
   static const List<NavOpData> _advancedNavItems = [
     NavOpData(
       label: 'Bangun Ruang',
-      icon: Icons.view_in_ar,
-      color: Color(0xFFFF7043),
+      assetPath: 'assets/ic_cal_advance/ic_bangun_ruang.png',
       route: '/rumus/geometri/bangun-ruang',
     ),
     NavOpData(
       label: 'Trigonometri',
-      icon: Icons.change_history_rounded,
-      color: Color(0xFF3F51B5),
+      assetPath: 'assets/ic_cal_advance/ic_trigonometri2.png',
       route: '/rumus/umum1/trigonometri',
     ),
     NavOpData(
       label: 'Logaritma',
-      symbol: 'log',
-      color: Color(0xFF673AB7),
+      assetPath: 'assets/ic_cal_advance/ic_logaritma2.png',
       route: '/rumus/umum1/logaritma',
     ),
     NavOpData(
       label: 'Akar Kuadrat',
-      symbol: '√x',
-      color: Color(0xFF00BFA5),
+      assetPath: 'assets/ic_cal_advance/ic_akar2.png',
       route: '/rumus/geometri/akar-kuadrat',
     ),
     NavOpData(
       label: 'Deg/Rad',
-      symbol: '°/rad',
-      color: Color(0xFF8D6E63),
+      assetPath: 'assets/ic_cal_advance/ic_rad.png',
       route: '/rumus/umum1/deg-rad',
     ),
     NavOpData(
       label: 'Barisan & Deret',
-      symbol: 'Σ',
-      color: Color(0xFFFF8F00),
+      assetPath: 'assets/ic_cal_advance/ic_baris.png',
       route: '/rumus/umum1/barisan-deret',
     ),
   ];

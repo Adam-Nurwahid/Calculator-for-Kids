@@ -28,16 +28,16 @@ const kDivider = AppColors.tipBoxBorder;
 class NavOpData {
   const NavOpData({
     required this.label,
+    this.assetPath,
     this.symbol,
     this.icon,
-    required this.color,
     required this.route,
   });
 
   final String label;
+  final String? assetPath;
   final String? symbol;
   final IconData? icon;
-  final Color color;
   final String route;
 }
 
@@ -61,32 +61,27 @@ class RumusHeader extends StatefulWidget {
   static const List<NavOpData> _defaultNavItems = [
     NavOpData(
       label: 'Penjumlahan',
-      symbol: '+',
-      color: AppColors.rumusAddColor,
+      assetPath: 'assets/ic_cal_advance/ic_plus.png',
       route: '/rumus/anak/penjumlahan',
     ),
     NavOpData(
       label: 'Pengurangan',
-      symbol: '−',
-      color: AppColors.rumusSubColor,
+      assetPath: 'assets/ic_cal_advance/ic_minus.png',
       route: '/rumus/anak/pengurangan',
     ),
     NavOpData(
       label: 'Perkalian',
-      symbol: '×',
-      color: AppColors.rumusMulColor,
+      assetPath: 'assets/ic_cal_advance/ic_kali.png',
       route: '/rumus/anak/perkalian',
     ),
     NavOpData(
       label: 'Pembagian',
-      symbol: '÷',
-      color: AppColors.rumusDivColor,
+      assetPath: 'assets/ic_cal_advance/ic_bagi.png',
       route: '/rumus/anak/pembagian',
     ),
     NavOpData(
       label: 'Tanda Kurung',
-      symbol: '( )',
-      color: AppColors.rumusBracketColor,
+      assetPath: 'assets/ic_cal_advance/ic_kurung.png',
       route: '/rumus/anak/tanda-kurung',
     ),
   ];
@@ -278,44 +273,35 @@ class _NavOpButton extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
+            AnimatedScale(
+              scale: isActive ? 1.08 : 1.0,
               duration: const Duration(milliseconds: 200),
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: data.color,
-                borderRadius: BorderRadius.circular(16),
-                border: isActive
-                    ? Border.all(color: data.color.withValues(alpha: 0.8), width: 2)
-                    : Border.all(color: Colors.transparent, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: data.color.withValues(alpha: isActive ? 0.5 : 0.25),
-                    blurRadius: isActive ? 8 : 4,
-                    offset: const Offset(0, 2),
+              curve: Curves.easeOut,
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: data.assetPath != null
+                    ? Image.asset(
+                  data.assetPath!,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.contain,
+                )
+                    : data.icon != null
+                    ? Icon(
+                  data.icon,
+                  size: 34,
+                )
+                    : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    data.symbol ?? '',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                ],
-              ),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: data.icon != null
-                      ? Icon(
-                          data.icon,
-                          color: Colors.white,
-                          size: 24,
-                        )
-                      : FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            data.symbol ?? '',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: (data.symbol?.length ?? 0) > 2 ? 18 : 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
                 ),
               ),
             ),
@@ -333,7 +319,8 @@ class _NavOpButton extends StatelessWidget {
                     color: const Color(0xFF333333),
                     fontSize: 10,
                     height: 1.15,
-                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                    fontWeight:
+                    isActive ? FontWeight.bold : FontWeight.w500,
                   ),
                 ),
               ),

@@ -115,7 +115,6 @@ class KalkulatorKidsApp extends StatelessWidget {
         '/rumus/umum1/akar-kuadrat':   (context) => const GeometryFormulasScreen(initialIndex: 5),
         '/rumus/geometri/trigonometri':(context) => const AdvancedFormulasScreen(initialIndex: 0),
         '/rumus/geometri/deg-rad':     (context) => const AdvancedFormulasScreen(initialIndex: 1),
-        '/rumus/anak/bangun-datar':    (context) => const GeometryFormulasScreen(initialIndex: 0),
         '/rumus/umum2/bangun-ruang':   (context) => const GeometryFormulasScreen(initialIndex: 1),
         '/rumus/umum2/trigonometri':   (context) => const AdvancedFormulasScreen(initialIndex: 0),
         '/rumus/umum2/logaritma':      (context) => const AdvancedFormulasScreen(initialIndex: 2),

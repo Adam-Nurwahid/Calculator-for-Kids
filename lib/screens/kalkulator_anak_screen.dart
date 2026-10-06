@@ -14,6 +14,42 @@ class KalkulatorAnakScreen extends StatefulWidget {
   State<KalkulatorAnakScreen> createState() => _KalkulatorAnakScreenState();
 }
 
+/// Immutable snapshot of everything the display needs.
+///
+/// Value equality lets [ValueNotifier] skip notifications when nothing visible
+/// changed, so a keypress rebuilds only the display — not the whole screen.
+@immutable
+class _CalcState {
+  const _CalcState({
+    this.expression = '',
+    this.result = '',
+    this.isError = false,
+  });
+
+  final String expression;
+  final String result;
+  final bool isError;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _CalcState &&
+      other.expression == expression &&
+      other.result == result &&
+      other.isError == isError;
+
+  @override
+  int get hashCode => Object.hash(expression, result, isError);
+}
+
+/// True if [s] contains at least one ASCII digit (replaces a per-keypress RegExp).
+bool _containsDigit(String s) {
+  for (var i = 0; i < s.length; i++) {
+    final c = s.codeUnitAt(i);
+    if (c >= 0x30 && c <= 0x39) return true;
+  }
+  return false;
+}
+
 class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     with TickerProviderStateMixin {
   String _expression = '';
@@ -21,10 +57,15 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   bool _isError = false;
   bool _justEvaluated = false;
 
-  // Star-burst animation
+  /// Only the display listens to this. The button grid is built once per
+  /// layout change and is NOT rebuilt on keypresses.
+  final ValueNotifier<_CalcState> _calc = ValueNotifier(const _CalcState());
+
+  // Star-burst animation (repaints via the painter's `repaint:` listenable,
+  // no setState / widget rebuild involved)
   late final AnimationController _starCtrl;
   late final Animation<double> _starAnim;
-  bool _showStars = false;
+  late final _StarBurstPainter _starPainter = _StarBurstPainter(_starAnim);
 
   // Shake animation for error
   late final AnimationController _shakeCtrl;
@@ -40,10 +81,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     );
     _starAnim = CurvedAnimation(parent: _starCtrl, curve: Curves.easeOut);
     _starCtrl.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        if (mounted) setState(() => _showStars = false);
-        _starCtrl.reset();
-      }
+      if (status == AnimationStatus.completed) _starCtrl.reset();
     });
 
     _shakeCtrl = AnimationController(
@@ -59,76 +97,84 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   void dispose() {
     _starCtrl.dispose();
     _shakeCtrl.dispose();
+    _calc.dispose();
     super.dispose();
   }
 
   // ---------------------------------------------------------------------------
-  // Logika Tombol (Unchanged)
+  // Logika Tombol
   // ---------------------------------------------------------------------------
 
   void _onButton(String value) {
     HapticFeedback.lightImpact();
-    setState(() {
-      if (_justEvaluated && RegExp(r'\d').hasMatch(value)) {
-        _expression = value;
-        _result = '';
-        _isError = false;
-        _justEvaluated = false;
-        return;
-      }
+    _handleInput(value);
+    _calc.value = _CalcState(
+      expression: _expression,
+      result: _result,
+      isError: _isError,
+    );
+  }
+
+  void _handleInput(String value) {
+    if (_justEvaluated && _containsDigit(value)) {
+      _expression = value;
+      _result = '';
+      _isError = false;
       _justEvaluated = false;
+      return;
+    }
+    _justEvaluated = false;
 
-      // Reset total
-      if (value == 'AC' || value == 'C') {
-        _expression = '';
-        _result = '';
-        _isError = false;
-        return;
-      }
+    // Reset total
+    if (value == 'AC' || value == 'C') {
+      _expression = '';
+      _result = '';
+      _isError = false;
+      return;
+    }
 
-      // Hapus satu karakter
-      if (value == '⌫') {
-        if (_expression.isNotEmpty) {
-          _expression = _expression.substring(0, _expression.length - 1);
-          _isError = false;
-          _updateLiveResult();
-        }
-        return;
-      }
-
-      // Tombol koma
-      if (value == ',') {
-        if (canAppendToken(_expression, '.')) {
-          _expression += '.';
-          _isError = false;
-          _updateLiveResult();
-        }
-        return;
-      }
-
-      // Tombol 00
-      if (value == '00') {
-        if (_expression.isNotEmpty && canAppendToken(_expression, '0')) {
-          _expression += '00';
-          _isError = false;
-          _updateLiveResult();
-        }
-        return;
-      }
-
-      // Tombol Samadengan
-      if (value == '=') {
-        _evaluate();
-        return;
-      }
-
-      // Token operator & angka reguler
-      if (canAppendToken(_expression, value)) {
-        _expression += value;
+    // Hapus satu karakter
+    if (value == '⌫') {
+      if (_expression.isNotEmpty) {
+        _expression = _expression.substring(0, _expression.length - 1);
         _isError = false;
         _updateLiveResult();
       }
-    });
+      return;
+    }
+
+    // Tombol koma
+    if (value == ',') {
+      if (canAppendToken(_expression, '.')) {
+        _expression += '.';
+        _isError = false;
+        _updateLiveResult();
+      }
+      return;
+    }
+
+    // Tombol 00
+    if (value == '00') {
+      if (_expression.isNotEmpty && canAppendToken(_expression, '0')) {
+        _expression += '00';
+        _isError = false;
+        _updateLiveResult();
+      }
+      return;
+    }
+
+    // Tombol Samadengan
+    if (value == '=') {
+      _evaluate();
+      return;
+    }
+
+    // Token operator & angka reguler
+    if (canAppendToken(_expression, value)) {
+      _expression += value;
+      _isError = false;
+      _updateLiveResult();
+    }
   }
 
   void _updateLiveResult() {
@@ -145,19 +191,14 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     if (_expression.isEmpty) return;
     final r = evaluateExpression(_expression);
     if (r is CalcSuccess) {
-      setState(() {
-        _result = r.display;
-        _isError = false;
-        _justEvaluated = true;
-        _showStars = true;
-      });
-      _starCtrl.forward();
+      _result = r.display;
+      _isError = false;
+      _justEvaluated = true;
+      _starCtrl.forward(from: 0);
     } else if (r is CalcError) {
-      setState(() {
-        _result = (r).message;
-        _isError = true;
-        _justEvaluated = false;
-      });
+      _result = r.message;
+      _isError = true;
+      _justEvaluated = false;
       _shakeCtrl.forward(from: 0);
     }
   }
@@ -206,7 +247,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
                           ),
                           Padding(
                             padding: EdgeInsets.only(top: isCompact ? 10 : 16),
-                            child: _buildButtonGrid(compactMode: isCompact),
+                            child: _buildButtonGrid(context, compactMode: isCompact),
                           ),
                         ],
                       ),
@@ -215,17 +256,15 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
                 },
               ),
 
-              // Star-burst overlay
-              if (_showStars)
-                IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _starAnim,
-                    builder: (context, _) => CustomPaint(
-                      size: MediaQuery.sizeOf(context),
-                      painter: _StarBurstPainter(_starAnim.value),
-                    ),
+              // Star-burst overlay: always mounted, isolated on its own layer,
+              // paints nothing while the animation is idle.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: RepaintBoundary(
+                    child: CustomPaint(painter: _starPainter),
                   ),
                 ),
+              ),
             ],
           ),
         ),
@@ -288,94 +327,100 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   }
 
   Widget _buildDisplayWithMascot({required bool compactMode}) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // ── Maskot Kucing Baca Buku ─────────────────────────────
-            Positioned(
-              top: compactMode ? -35 : -55,
-              left: 24,
-              child: Image.asset(
-                'assets/membaca_buku_belajar_1.png',
-                height: compactMode ? 42 : 55,
-                fit: BoxFit.contain,
-              ),
-            ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // ── Maskot Kucing Baca Buku ─────────────────────────────
+        Positioned(
+          top: compactMode ? -35 : -55,
+          left: 24,
+          child: Image.asset(
+            'assets/membaca_buku_belajar_1.png',
+            height: compactMode ? 42 : 55,
+            fit: BoxFit.contain,
+          ),
+        ),
 
-            // ── Layar Kotak Display Kuning ──────────────────────────
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedBuilder(
-                  animation: _shakeAnim,
-                  builder: (context, child) {
-                    final shake = math.sin(_shakeAnim.value * math.pi * 6) *
-                        (_isError ? 10 * (1 - _shakeAnim.value) : 0);
-                    return Transform.translate(
-                      offset: Offset(shake, 0),
-                      child: child,
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: compactMode ? 8 : 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5B800),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Ekspresi perhitungan
-                        FittedBox(
-                          alignment: Alignment.centerRight,
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _expression.isEmpty ? '0' : _expression,
-                            style: TextStyle(
-                              fontSize: compactMode ? 36 : 48,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: 1.5,
-                            ),
+        // ── Layar Kotak Display Kuning ──────────────────────────
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: AnimatedBuilder(
+              animation: _shakeAnim,
+              builder: (context, child) {
+                final shake = math.sin(_shakeAnim.value * math.pi * 6) *
+                    (_isError ? 10 * (1 - _shakeAnim.value) : 0);
+                return Transform.translate(
+                  offset: Offset(shake, 0),
+                  child: child,
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: compactMode ? 8 : 12,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5B800),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                // Only this subtree rebuilds on each keypress.
+                child: ValueListenableBuilder<_CalcState>(
+                  valueListenable: _calc,
+                  builder: (context, s, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Ekspresi perhitungan
+                      FittedBox(
+                        alignment: Alignment.centerRight,
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          s.expression.isEmpty ? '0' : s.expression,
+                          style: TextStyle(
+                            fontSize: compactMode ? 36 : 48,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                            letterSpacing: 1.5,
                           ),
                         ),
-                        SizedBox(height: compactMode ? 4 : 8),
+                      ),
+                      SizedBox(height: compactMode ? 4 : 8),
 
-                        // Hasil / Error
-                        FittedBox(
-                          alignment: Alignment.centerRight,
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _result.isEmpty ? '' : _result,
-                            style: TextStyle(
-                              fontSize: compactMode ? 22 : 28,
-                              fontWeight: FontWeight.bold,
-                              color: _isError
-                                  ? Colors.red.shade900
-                                  : const Color(0xFF6B587B),
-                            ),
+                      // Hasil / Error
+                      FittedBox(
+                        alignment: Alignment.centerRight,
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          s.result,
+                          style: TextStyle(
+                            fontSize: compactMode ? 22 : 28,
+                            fontWeight: FontWeight.bold,
+                            color: s.isError
+                                ? Colors.red.shade900
+                                : const Color(0xFF6B587B),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildButtonGrid({required bool compactMode}) {
+  Widget _buildButtonGrid(BuildContext context, {required bool compactMode}) {
     final vGap = compactMode ? 6.0 : 10.0;
+
+    // Button diameter is computed ONCE here instead of in a LayoutBuilder
+    // inside every one of the 20 buttons (same formula as before).
+    final width = Responsive.widthOf(context).clamp(280.0, 480.0);
+    final raw = (width - 32 - 36) / 4;
+    final size = compactMode ? raw.clamp(42.0, 56.0) : raw.clamp(44.0, 68.0);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 4, 16, compactMode ? 12 : 20),
@@ -386,48 +431,48 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
             _BtnStyle.green,
             _BtnStyle.green,
             _BtnStyle.orange,
-          ], compactMode),
+          ], size),
           SizedBox(height: vGap),
           _buildRow(['7', '8', '9', '×'], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.orange,
-          ], compactMode),
+          ], size),
           SizedBox(height: vGap),
           _buildRow(['4', '5', '6', '-'], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.orange,
-          ], compactMode),
+          ], size),
           SizedBox(height: vGap),
           _buildRow(['1', '2', '3', '+'], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.orange,
-          ], compactMode),
+          ], size),
           SizedBox(height: vGap),
           _buildRow(['0', '00', ',', '='], [
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.white,
             _BtnStyle.coral,
-          ], compactMode),
+          ], size),
         ],
       ),
     );
   }
 
-  Widget _buildRow(List<String> labels, List<_BtnStyle> styles, bool compactMode) {
+  Widget _buildRow(List<String> labels, List<_BtnStyle> styles, double size) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(labels.length, (i) {
         return _CalcRoundButton(
           label: labels[i],
           style: styles[i],
-          compactMode: compactMode,
+          size: size,
           onTap: () => _onButton(labels[i]),
         );
       }),
@@ -436,134 +481,90 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
 }
 
 // ---------------------------------------------------------------------------
-// Gaya Tombol Bulat Lingkaran (With Responsive Constraints & Hover State)
+// Tombol Bulat — StatelessWidget, no per-button AnimationController /
+// MouseRegion setState. Press + hover feedback comes from InkResponse.
 // ---------------------------------------------------------------------------
 
 enum _BtnStyle { white, green, orange, coral }
 
-class _CalcRoundButton extends StatefulWidget {
+class _CalcRoundButton extends StatelessWidget {
   const _CalcRoundButton({
     required this.label,
     required this.style,
+    required this.size,
     required this.onTap,
-    this.compactMode = false,
   });
 
   final String label;
   final _BtnStyle style;
+  final double size;
   final VoidCallback onTap;
-  final bool compactMode;
 
-  @override
-  State<_CalcRoundButton> createState() => _CalcRoundButtonState();
-}
+  static const List<BoxShadow> _shadow = [
+    BoxShadow(
+      color: Color(0x0F000000), // black @ ~6%
+      blurRadius: 4,
+      offset: Offset(0, 2),
+    ),
+  ];
 
-class _CalcRoundButtonState extends State<_CalcRoundButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  bool _isHovered = false;
+  Color get _bgColor => switch (style) {
+        _BtnStyle.white => const Color(0xFFFAFAFA),
+        _BtnStyle.green => const Color(0xFF28C734),
+        _BtnStyle.orange => const Color(0xFFFB9403),
+        _BtnStyle.coral => const Color(0xFFFF6F37),
+      };
 
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 90),
-      lowerBound: 0.90,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  Color get _bgColor {
-    switch (widget.style) {
-      case _BtnStyle.white:
-        return _isHovered ? const Color(0xFFEBEBEB) : const Color(0xFFFAFAFA);
-      case _BtnStyle.green:
-        return _isHovered ? const Color(0xFF22B22D) : const Color(0xFF28C734);
-      case _BtnStyle.orange:
-        return _isHovered ? const Color(0xFFE58500) : const Color(0xFFFB9403);
-      case _BtnStyle.coral:
-        return _isHovered ? const Color(0xFFE65D29) : const Color(0xFFFF6F37);
-    }
-  }
-
-  Color get _textColor {
-    switch (widget.style) {
-      case _BtnStyle.white:
-        return Colors.black;
-      default:
-        return Colors.black87;
-    }
-  }
+  Color get _textColor =>
+      style == _BtnStyle.white ? Colors.black : Colors.black87;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final parentWidth = Responsive.widthOf(context).clamp(280.0, 480.0);
-        final rawSize = (parentWidth - 32 - 36) / 4;
-        final size = widget.compactMode ? rawSize.clamp(42.0, 56.0) : rawSize.clamp(44.0, 68.0);
-
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          child: ScaleTransition(
-            scale: _ctrl,
-            child: GestureDetector(
-              onTapDown: (_) => _ctrl.reverse(),
-              onTapUp: (_) {
-                _ctrl.forward();
-                widget.onTap();
-              },
-              onTapCancel: () => _ctrl.forward(),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  color: _bgColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: _isHovered ? 0.14 : 0.06),
-                      blurRadius: _isHovered ? 8 : 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: _buildLabel(size),
-                ),
-              ),
-            ),
+    return SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: _shadow,
+        ),
+        child: Material(
+          color: _bgColor,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkResponse(
+            onTap: onTap,
+            containedInkWell: true,
+            customBorder: const CircleBorder(),
+            // InkRipple is cheaper than Material 3's default InkSparkle
+            // (which runs a fragment shader) on low-end GPUs.
+            splashFactory: InkRipple.splashFactory,
+            hoverColor: const Color(0x14000000),
+            highlightColor: const Color(0x14000000),
+            splashColor: const Color(0x1F000000),
+            // Keep keyboard focus on CalcResponsiveContainer's Focus node.
+            canRequestFocus: false,
+            child: Center(child: _buildLabel()),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _buildLabel(double buttonSize) {
-    final iconSize = (buttonSize * 0.42).clamp(18.0, 26.0);
-    final fontBase = (buttonSize * 0.46).clamp(18.0, 28.0);
+  Widget _buildLabel() {
+    final iconSize = (size * 0.42).clamp(18.0, 26.0);
+    final fontBase = (size * 0.46).clamp(18.0, 28.0);
 
-    if (widget.label == '⌫') {
+    if (label == '⌫') {
       return Icon(Icons.backspace_outlined, color: Colors.black87, size: iconSize);
     }
-    if (widget.label == '⤢') {
+    if (label == '⤢') {
       return Icon(Icons.open_in_full_rounded, color: Colors.black87, size: iconSize * 0.9);
     }
     return Text(
-      widget.label,
+      label,
       style: TextStyle(
-        fontSize: widget.label.length > 1 ? fontBase * 0.8 : fontBase,
+        fontSize: label.length > 1 ? fontBase * 0.8 : fontBase,
         color: _textColor,
         fontWeight: FontWeight.w600,
       ),
@@ -576,8 +577,10 @@ class _CalcRoundButtonState extends State<_CalcRoundButton>
 // ---------------------------------------------------------------------------
 
 class _StarBurstPainter extends CustomPainter {
-  _StarBurstPainter(this.progress);
-  final double progress;
+  /// Repaints whenever [anim] ticks (no widget rebuild needed).
+  _StarBurstPainter(this.anim) : super(repaint: anim);
+
+  final Animation<double> anim;
 
   static final _rng = math.Random(42);
   static final List<_Particle> _particles = List.generate(
@@ -600,36 +603,18 @@ class _StarBurstPainter extends CustomPainter {
     Color(0xFFEA80FC),
   ];
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height * 0.4;
-    final fade = (1.0 - progress).clamp(0.0, 1.0);
+  /// Star of radius 1, built once and scaled per particle with canvas.scale().
+  static final Path _unitStar = _buildUnitStar();
 
-    for (final p in _particles) {
-      final dist = p.speed * progress;
-      final dx = cx + math.cos(p.angle) * dist;
-      final dy = cy + math.sin(p.angle) * dist + 200 * progress * progress;
+  /// One shared Paint instead of 40 allocations per frame.
+  static final Paint _paint = Paint()..style = PaintingStyle.fill;
 
-      canvas.save();
-      canvas.translate(dx, dy);
-      canvas.rotate(p.rotationSpeed * progress * math.pi);
-
-      final paint = Paint()
-        ..color = p.color.withValues(alpha: fade)
-        ..style = PaintingStyle.fill;
-
-      _drawStar(canvas, paint, p.size * (1 - progress * 0.3));
-      canvas.restore();
-    }
-  }
-
-  void _drawStar(Canvas canvas, Paint paint, double size) {
+  static Path _buildUnitStar() {
     final path = Path();
     const points = 5;
     const innerRatio = 0.45;
     for (int i = 0; i < points * 2; i++) {
-      final r = i.isEven ? size : size * innerRatio;
+      final r = i.isEven ? 1.0 : innerRatio;
       final a = (i * math.pi / points) - math.pi / 2;
       final x = r * math.cos(a);
       final y = r * math.sin(a);
@@ -640,11 +625,35 @@ class _StarBurstPainter extends CustomPainter {
       }
     }
     path.close();
-    canvas.drawPath(path, paint);
+    return path;
   }
 
   @override
-  bool shouldRepaint(_StarBurstPainter old) => old.progress != progress;
+  void paint(Canvas canvas, Size size) {
+    final progress = anim.value;
+    if (progress <= 0 || progress >= 1) return; // idle: draw nothing
+
+    final cx = size.width / 2;
+    final cy = size.height * 0.4;
+    final fade = 1.0 - progress;
+
+    for (final p in _particles) {
+      final dist = p.speed * progress;
+      final dx = cx + math.cos(p.angle) * dist;
+      final dy = cy + math.sin(p.angle) * dist + 200 * progress * progress;
+
+      canvas.save();
+      canvas.translate(dx, dy);
+      canvas.rotate(p.rotationSpeed * progress * math.pi);
+      canvas.scale(p.size * (1 - progress * 0.3));
+      _paint.color = p.color.withValues(alpha: fade);
+      canvas.drawPath(_unitStar, _paint);
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StarBurstPainter old) => old.anim != anim;
 }
 
 class _Particle {

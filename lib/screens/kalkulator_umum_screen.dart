@@ -23,6 +23,38 @@ class KalkulatorUmumScreen extends StatefulWidget {
   State<KalkulatorUmumScreen> createState() => _KalkulatorUmumScreenState();
 }
 
+/// Snapshot of what the display shows. Value equality lets [ValueNotifier]
+/// skip no-op updates, so keypresses rebuild only the display subtree.
+@immutable
+class _DisplayState {
+  const _DisplayState(this.expression, this.result, this.isError);
+  final String expression;
+  final String result;
+  final bool isError;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _DisplayState &&
+      other.expression == expression &&
+      other.result == result &&
+      other.isError == isError;
+
+  @override
+  int get hashCode => Object.hash(expression, result, isError);
+}
+
+/// True if [s] contains an ASCII digit or '(' (replaces a per-keypress RegExp).
+bool _startsFreshExpression(String s) {
+  for (var i = 0; i < s.length; i++) {
+    final c = s.codeUnitAt(i);
+    if ((c >= 0x30 && c <= 0x39) || c == 0x28) return true;
+  }
+  return false;
+}
+
+/// History is capped so it can't grow without bound in a long session.
+const int _kMaxHistory = 50;
+
 class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
     with TickerProviderStateMixin {
   // ── State ──────────────────────────────────────────────────────────────────
@@ -38,7 +70,10 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
   // ── Animation controllers ─────────────────────────────────────────────────
   late final AnimationController _shakeCtrl;
   late final Animation<double> _shakeAnim;
-  late final AnimationController _resultCtrl;
+
+  /// Display listens to this; the button grid does not rebuild per keypress.
+  final ValueNotifier<_DisplayState> _calc =
+      ValueNotifier(const _DisplayState('', '', false));
 
   @override
   void initState() {
@@ -51,17 +86,12 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
     _shakeAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticOut),
     );
-
-    _resultCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
   }
 
   @override
   void dispose() {
     _shakeCtrl.dispose();
-    _resultCtrl.dispose();
+    _calc.dispose();
     super.dispose();
   }
 
@@ -82,86 +112,98 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
   void _onButton(String value) {
     HapticFeedback.lightImpact();
-    setState(() {
-      // After "=" pressed, a new digit starts a fresh expression
-      if (_justEvaluated && RegExp(r'[\d(]').hasMatch(value)) {
-        _expression = value;
+    _handleInput(value);
+    _publish();
+  }
+
+  void _publish() {
+    _calc.value = _DisplayState(_expression, _result, _isError);
+  }
+
+  void _handleInput(String value) {
+    // After "=" pressed, a new digit starts a fresh expression
+    if (_justEvaluated && _startsFreshExpression(value)) {
+      _expression = value;
+      _result = '';
+      _isError = false;
+      _justEvaluated = false;
+      return;
+    }
+    _justEvaluated = false;
+
+    switch (value) {
+      case 'AC':
+      case 'C':
+        _expression = '';
         _result = '';
         _isError = false;
-        _justEvaluated = false;
         return;
-      }
-      _justEvaluated = false;
 
-      switch (value) {
-        case 'AC':
-        case 'C':
-          _expression = '';
-          _result = '';
+      case '⌫':
+        if (_expression.isNotEmpty) {
+          // Remove last multi-char token (sin, cos, tan, log, ln)
+          const fns = ['sin', 'cos', 'tan', 'log', 'ln'];
+          bool removed = false;
+          for (final fn in fns) {
+            if (_expression.endsWith(fn)) {
+              _expression =
+                  _expression.substring(0, _expression.length - fn.length);
+              removed = true;
+              break;
+            }
+          }
+          if (!removed) {
+            _expression = _expression.substring(0, _expression.length - 1);
+          }
           _isError = false;
-          return;
+          _updateLive();
+        }
+        return;
 
-        case '⌫':
-          if (_expression.isNotEmpty) {
-            // Remove last multi-char token (sin, cos, tan, log, ln)
-            const fns = ['sin', 'cos', 'tan', 'log', 'ln'];
-            bool removed = false;
-            for (final fn in fns) {
-              if (_expression.endsWith(fn)) {
-                _expression =
-                    _expression.substring(0, _expression.length - fn.length);
-                removed = true;
-                break;
-              }
-            }
-            if (!removed) {
-              _expression = _expression.substring(0, _expression.length - 1);
-            }
-            _isError = false;
-            _updateLive();
+      case '=':
+        _evaluate();
+        return;
+
+      case ',':
+        if (_canAppend('.')) {
+          _expression += '.';
+          _isError = false;
+          _updateLive();
+        }
+        return;
+
+      case '00':
+        if (_expression.isNotEmpty && _canAppend('0')) {
+          _expression += '00';
+          _isError = false;
+          _updateLive();
+        }
+        return;
+
+      default:
+        if (_canAppend(value)) {
+          // Functions need an auto '(' after them
+          _expression += value;
+          if (['sin', 'cos', 'tan', 'log', 'ln', '√'].contains(value)) {
+            _expression += '(';
           }
-          return;
+          _isError = false;
+          _updateLive();
+        }
+    }
+  }
 
-        case '=':
-          _evaluate();
-          return;
-
-        case ',':
-          if (_canAppend('.')) {
-            _expression += '.';
-            _isError = false;
-            _updateLive();
-          }
-          return;
-
-        case '00':
-          if (_expression.isNotEmpty && _canAppend('0')) {
-            _expression += '00';
-            _isError = false;
-            _updateLive();
-          }
-          return;
-
-        case 'DEG':
-          _angleMode = AngleMode.deg;
-          return;
-
-        case 'RAD':
-          _angleMode = AngleMode.rad;
-          return;
-
-        default:
-          if (_canAppend(value)) {
-            // Functions need an auto '(' after them
-            _expression += value;
-            if (['sin', 'cos', 'tan', 'log', 'ln', '√'].contains(value)) {
-              _expression += '(';
-            }
-            _isError = false;
-            _updateLive();
-          }
-      }
+  /// DEG <-> RAD. Also re-evaluates, so the preview never shows a result
+  /// computed in the previous angle mode.
+  void _toggleAngleMode() {
+    setState(() {
+      _angleMode =
+          _angleMode == AngleMode.deg ? AngleMode.rad : AngleMode.deg;
     });
+    if (_expression.isNotEmpty) {
+      _updateLive();
+      _publish();
+    }
   }
 
   bool _canAppend(String token) => canAppendUmum(_expression, token);
@@ -171,28 +213,24 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
     if (r is UmumSuccess) {
       _result = r.display;
       _isError = false;
-      _resultCtrl.forward(from: 0);
     } else {
       _result = '';
     }
   }
 
+  // Mutates state only; the caller (_onButton) publishes it. No nested setState.
   void _evaluate() {
     if (_expression.isEmpty) return;
     final r = evaluateUmum(_expression, mode: _angleMode);
     if (r is UmumSuccess) {
-      setState(() {
-        _history.insert(0, _HistoryEntry(_expression, r.display));
-        _result = r.display;
-        _isError = false;
-        _justEvaluated = true;
-      });
-      _resultCtrl.forward(from: 0);
+      _history.insert(0, _HistoryEntry(_expression, r.display));
+      if (_history.length > _kMaxHistory) _history.removeLast();
+      _result = r.display;
+      _isError = false;
+      _justEvaluated = true;
     } else if (r is UmumError) {
-      setState(() {
-        _result = r.message;
-        _isError = true;
-      });
+      _result = r.message;
+      _isError = true;
       _shakeCtrl.forward(from: 0);
     }
   }
@@ -366,46 +404,49 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Expression
-            FittedBox(
-              alignment: Alignment.centerRight,
-              fit: BoxFit.scaleDown,
-              child: Text(
-                _expression.isEmpty ? '0' : _expression,
-                style: TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.bold,
-                  color: _exprColor,
-                  letterSpacing: 1,
+        child: ValueListenableBuilder<_DisplayState>(
+          valueListenable: _calc,
+          builder: (context, d, _) => Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Expression
+              FittedBox(
+                alignment: Alignment.centerRight,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  d.expression.isEmpty ? '0' : d.expression,
+                  style: TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.bold,
+                    color: _exprColor,
+                    letterSpacing: 1,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            // Live result / answer
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: _result.isEmpty
-                  ? const SizedBox(height: 28, key: ValueKey('empty'))
-                  : FittedBox(
-                      alignment: Alignment.centerRight,
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        _result,
-                        key: ValueKey(_result),
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w400,
-                          color: _isError ? Colors.redAccent : _resultColor,
+              const SizedBox(height: 6),
+              // Live result / answer
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: d.result.isEmpty
+                    ? const SizedBox(height: 28, key: ValueKey('empty'))
+                    : FittedBox(
+                        alignment: Alignment.centerRight,
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          d.result,
+                          key: ValueKey(d.result),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w400,
+                            color: d.isError ? Colors.redAccent : _resultColor,
+                          ),
                         ),
                       ),
-                    ),
-            ),
-            const SizedBox(height: 10),
-          ],
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );
@@ -495,12 +536,8 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
             fgColor: fg,
             onTap: () {
               if (b.label == '⤢') return;
-              if (b.label == 'DEG') {
-                setState(() => _angleMode = AngleMode.rad);
-                return;
-              }
-              if (b.label == 'RAD') {
-                setState(() => _angleMode = AngleMode.deg);
+              if (b.label == 'DEG' || b.label == 'RAD') {
+                _toggleAngleMode();
                 return;
               }
               _onButton(b.label);
@@ -520,10 +557,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
           final h = (constraints.maxWidth - 6) / 2;
           return SizedBox(
             height: h,
-            child: _CalcEqualButton(
-              onTap: () => _onButton('='),
-              height: h,
-            ),
+            child: _CalcEqualButton(onTap: () => _onButton('=')),
           );
         },
       ),
@@ -651,6 +685,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
                                 _justEvaluated = true;
                                 _showHistory = false;
                               });
+                              _publish();
                             },
                           );
                         },
@@ -689,10 +724,10 @@ class _Btn {
 }
 
 // ---------------------------------------------------------------------------
-// Individual calculator button with mouse hover effect
+// Individual calculator button (ink feedback + hover; no per-button controller)
 // ---------------------------------------------------------------------------
 
-class _CalcButton extends StatefulWidget {
+class _CalcButton extends StatelessWidget {
   const _CalcButton({
     required this.label,
     required this.bgColor,
@@ -705,158 +740,97 @@ class _CalcButton extends StatefulWidget {
   final Color fgColor;
   final VoidCallback onTap;
 
-  @override
-  State<_CalcButton> createState() => _CalcButtonState();
-}
-
-class _CalcButtonState extends State<_CalcButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  bool _isHovered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 80),
-      lowerBound: 0.90,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  static const List<BoxShadow> _shadow = [
+    BoxShadow(
+      color: Color(0x12000000), // black @ ~7%
+      blurRadius: 4,
+      offset: Offset(0, 2),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: ScaleTransition(
-        scale: _ctrl,
-        child: GestureDetector(
-          onTapDown: (_) => _ctrl.reverse(),
-          onTapUp: (_) {
-            _ctrl.forward();
-            widget.onTap();
-          },
-          onTapCancel: () => _ctrl.forward(),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            decoration: BoxDecoration(
-              color: _isHovered
-                  ? Color.alphaBlend(Colors.white.withValues(alpha: 0.15), widget.bgColor)
-                  : widget.bgColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: _isHovered ? 0.14 : 0.07),
-                  blurRadius: _isHovered ? 6 : 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Center(child: _buildLabel()),
-          ),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: _shadow,
+      ),
+      child: Material(
+        color: bgColor,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkResponse(
+          onTap: onTap,
+          containedInkWell: true,
+          customBorder: const CircleBorder(),
+          splashFactory: InkRipple.splashFactory, // cheaper than InkSparkle
+          hoverColor: const Color(0x26FFFFFF),
+          highlightColor: const Color(0x14000000),
+          splashColor: const Color(0x1F000000),
+          canRequestFocus: false, // keep focus on the keyboard-input node
+          child: Center(child: _buildLabel()),
         ),
       ),
     );
   }
 
   Widget _buildLabel() {
-    if (widget.label == '⌫') {
-      return Icon(Icons.backspace_outlined, color: widget.fgColor, size: 22);
+    if (label == '⌫') {
+      return Icon(Icons.backspace_outlined, color: fgColor, size: 22);
     }
-    if (widget.label == '⤢') {
-      return Icon(Icons.open_in_full_rounded, color: widget.fgColor, size: 20);
+    if (label == '⤢') {
+      return Icon(Icons.open_in_full_rounded, color: fgColor, size: 20);
     }
     return Text(
-      widget.label,
+      label,
       style: TextStyle(
-        fontSize: widget.label.length > 2 ? 15 : (widget.label.length > 1 ? 19 : 24),
-        color: widget.fgColor,
+        fontSize: label.length > 2 ? 15 : (label.length > 1 ? 19 : 24),
+        color: fgColor,
         fontWeight: FontWeight.w600,
       ),
     );
   }
 }
 
-class _CalcEqualButton extends StatefulWidget {
-  const _CalcEqualButton({required this.onTap, required this.height});
+class _CalcEqualButton extends StatelessWidget {
+  const _CalcEqualButton({required this.onTap});
   final VoidCallback onTap;
-  final double height;
 
-  @override
-  State<_CalcEqualButton> createState() => _CalcEqualButtonState();
-}
-
-class _CalcEqualButtonState extends State<_CalcEqualButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  bool _isHovered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 80),
-      lowerBound: 0.92,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  static const Color _orange = Color(0xFFFB9403);
 
   @override
   Widget build(BuildContext context) {
-    const kOrange = Color(0xFFFB9403);
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: ScaleTransition(
-        scale: _ctrl,
-        child: GestureDetector(
-          onTapDown: (_) => _ctrl.reverse(),
-          onTapUp: (_) {
-            _ctrl.forward();
-            widget.onTap();
-          },
-          onTapCancel: () => _ctrl.forward(),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            decoration: BoxDecoration(
-              color: _isHovered ? const Color(0xFFFF9E1B) : kOrange,
-              borderRadius: BorderRadius.circular(widget.height / 2),
-              boxShadow: [
-                BoxShadow(
-                  color: kOrange.withValues(alpha: _isHovered ? 0.6 : 0.4),
-                  blurRadius: _isHovered ? 14 : 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Center(
-              child: Text(
-                '=',
-                style: TextStyle(
-                  fontSize: 28,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+    return DecoratedBox(
+      decoration: const ShapeDecoration(
+        shape: StadiumBorder(),
+        shadows: [
+          BoxShadow(
+            color: Color(0x66FB9403), // orange @ 40%
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: _orange,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkResponse(
+          onTap: onTap,
+          containedInkWell: true,
+          customBorder: const StadiumBorder(),
+          splashFactory: InkRipple.splashFactory,
+          hoverColor: const Color(0x26FFFFFF),
+          highlightColor: const Color(0x14000000),
+          splashColor: const Color(0x1FFFFFFF),
+          canRequestFocus: false,
+          child: const Center(
+            child: Text(
+              '=',
+              style: TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

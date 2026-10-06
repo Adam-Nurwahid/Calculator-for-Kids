@@ -142,7 +142,7 @@ class _RumusHeaderState extends State<RumusHeader> {
         Container(
           width: double.infinity,
           padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 12,
+            top: MediaQuery.paddingOf(context).top + 12,
             left: 20,
             right: 20,
             bottom: widget.showNav ? 28 : 20,
@@ -879,7 +879,7 @@ class RumusScaffold extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 12,
+                top: MediaQuery.paddingOf(context).top + 12,
                 left: 20,
                 right: 20,
                 bottom: 20,

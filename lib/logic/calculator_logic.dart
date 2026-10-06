@@ -98,7 +98,7 @@ CalcResult evaluateExpression(String expression) {
 bool canAppendToken(String expression, String token) {
   final last = expression.isEmpty ? '' : expression[expression.length - 1];
   final isOperator = _isOperatorChar(token);
-  final isDigit = RegExp(r'\d').hasMatch(token);
+  final isDigit = _isDigitToken(token);
   final isOpenParen = token == '(';
   final isCloseParen = token == ')';
 
@@ -124,12 +124,31 @@ bool canAppendToken(String expression, String token) {
 
   if (isCloseParen) {
     // ')' must have a matching '(' and can't follow an operator or '('
-    final opens = expression.split('(').length - 1;
-    final closes = expression.split(')').length - 1;
-    return opens > closes && !_isOperatorChar(last) && last != '(';
+    return _parenBalance(expression) > 0 &&
+        !_isOperatorChar(last) &&
+        last != '(';
   }
 
   return true;
+}
+
+/// True when [s] is a single ASCII digit (replaces a per-call RegExp).
+bool _isDigitToken(String s) => s.length == 1 && _isDigitCode(s.codeUnitAt(0));
+
+bool _isDigitCode(int c) => c >= 0x30 && c <= 0x39; // '0'..'9'
+
+/// Open-minus-close parenthesis count in a single pass (no list allocation).
+int _parenBalance(String s) {
+  var n = 0;
+  for (var i = 0; i < s.length; i++) {
+    final c = s.codeUnitAt(i);
+    if (c == 0x28) {
+      n++;
+    } else if (c == 0x29) {
+      n--;
+    }
+  }
+  return n;
 }
 
 bool _isOperatorChar(String ch) => ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '×' || ch == '÷';
@@ -213,7 +232,7 @@ class _Parser {
     }
 
     // Number literal
-    if (RegExp(r'\d').hasMatch(_current)) {
+    if (_isDigitCode(_input.codeUnitAt(_pos))) {
       return _parseNumber();
     }
 
@@ -222,13 +241,13 @@ class _Parser {
 
   num _parseNumber() {
     final start = _pos;
-    while (!isAtEnd && RegExp(r'\d').hasMatch(_current)) {
+    while (!isAtEnd && _isDigitCode(_input.codeUnitAt(_pos))) {
       _pos++;
     }
     // Support decimal input (even though kids mode discourages it)
     if (!isAtEnd && _current == '.') {
       _pos++;
-      while (!isAtEnd && RegExp(r'\d').hasMatch(_current)) {
+      while (!isAtEnd && _isDigitCode(_input.codeUnitAt(_pos))) {
         _pos++;
       }
       return double.parse(_input.substring(start, _pos));

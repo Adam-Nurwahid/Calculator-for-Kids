@@ -12,10 +12,9 @@
 //
 // Grammar (EBNF):
 //   expr    = term   ( ( '+' | '-' ) term   )*
-//   term    = power  ( ( '*' | '/' | '%' ) power )*
-//   power   = unary  ( '^' unary )*
-//   unary   = '-' unary | postfix
-//   postfix = primary ( '!' )*          // factorial – optional, easy to add
+//   term    = unary  ( ( '*' | '/' | '%' ) unary )*
+//   unary   = '-' unary | power          // unary minus binds LOOSER than ^
+//   power   = primary ( '^' unary )?     // right-associative: 2^3^2 = 2^9
 //   primary = NUMBER | fn '(' expr ')' | '(' expr ')' | CONST
 //   fn      = 'sin' | 'cos' | 'tan' | 'log' | 'ln' | '√'
 //   CONST   = 'π' | 'e'
@@ -46,9 +45,11 @@ final class UmumSuccess extends UmumResult {
     if (value is int || value == value.truncate()) {
       return value.truncate().toString();
     }
-    // Up to 10 significant digits, strip trailing zeros
-    final s = double.parse(value.toStringAsFixed(10)).toString();
-    return s;
+    // Up to 10 decimal places; collapse float noise (e.g. sin(180°) ≈ 1e-16)
+    // to a clean integer string instead of "0.0".
+    final d = double.parse(value.toStringAsFixed(10));
+    if (d == d.truncate()) return d.truncate().toString();
+    return d.toString();
   }
 }
 
@@ -99,7 +100,7 @@ UmumResult evaluateUmum(String expression, {AngleMode mode = AngleMode.deg}) {
 bool canAppendUmum(String expr, String token) {
   final last = expr.isEmpty ? '' : expr[expr.length - 1];
   final isOp = _isOp(token);
-  final isDigit = RegExp(r'\d').hasMatch(token);
+  final isDigit = _isDigitToken(token);
   final isFn = _isFn(token);
 
   if (expr.isEmpty) {
@@ -120,9 +121,7 @@ bool canAppendUmum(String expr, String token) {
   }
 
   if (token == ')') {
-    final opens = expr.split('(').length - 1;
-    final closes = expr.split(')').length - 1;
-    return opens > closes && !_isOp(last) && last != '(';
+    return _parenBalance(expr) > 0 && !_isOp(last) && last != '(';
   }
 
   if (isFn || token == 'π' || token == 'e') {
@@ -130,6 +129,26 @@ bool canAppendUmum(String expr, String token) {
   }
 
   return true;
+}
+
+/// True when [s] is a single ASCII digit (replaces a per-call RegExp).
+bool _isDigitToken(String s) =>
+    s.length == 1 && _isDigitCode(s.codeUnitAt(0));
+
+bool _isDigitCode(int c) => c >= 0x30 && c <= 0x39; // '0'..'9'
+
+/// Open-minus-close parenthesis count in a single pass (no list allocation).
+int _parenBalance(String s) {
+  var n = 0;
+  for (var i = 0; i < s.length; i++) {
+    final c = s.codeUnitAt(i);
+    if (c == 0x28) {
+      n++; // (
+    } else if (c == 0x29) {
+      n--; // )
+    }
+  }
+  return n;
 }
 
 bool _isOp(String ch) =>
@@ -153,6 +172,8 @@ class _DivByZero implements Exception {}
 // Recursive-descent parser
 // ---------------------------------------------------------------------------
 
+const List<String> _kFunctions = ['sin', 'cos', 'tan', 'log', 'ln'];
+
 class _UmumParser {
   _UmumParser(this._src, this._mode);
 
@@ -175,13 +196,13 @@ class _UmumParser {
     return result;
   }
 
-  // term = power ( ('*' | '/' | '%') power )*
+  // term = unary ( ('*' | '/' | '%') unary )*
   double _parseTerm() {
-    var result = _parsePower();
+    var result = _parseUnary();
     while (!isAtEnd && (_cur == '*' || _cur == '/' || _cur == '%')) {
       final op = _cur;
       _pos++;
-      final right = _parsePower();
+      final right = _parseUnary();
       if (op == '/') {
         if (right == 0) throw _DivByZero();
         result = result / right;
@@ -194,25 +215,28 @@ class _UmumParser {
     return result;
   }
 
-  // power = unary ( '^' unary )*
-  double _parsePower() {
-    var base = _parseUnary();
-    while (!isAtEnd && _cur == '^') {
-      _pos++;
-      final exp = _parseUnary();
-      base = math.pow(base, exp).toDouble();
-    }
-    return base;
-  }
-
-  // unary = '-' unary | primary
+  // unary = '-' unary | power
+  // Unary minus binds looser than '^', so -2^2 = -(2^2) = -4.
   double _parseUnary() {
     _skip();
     if (!isAtEnd && _cur == '-') {
       _pos++;
       return -_parseUnary();
     }
-    return _parsePrimary();
+    return _parsePower();
+  }
+
+  // power = primary ( '^' unary )?
+  // Right-associative: 2^3^2 = 2^(3^2) = 512, and 2^-1 is allowed.
+  double _parsePower() {
+    final base = _parsePrimary();
+    _skip();
+    if (!isAtEnd && _cur == '^') {
+      _pos++;
+      final exp = _parseUnary();
+      return math.pow(base, exp).toDouble();
+    }
+    return base;
   }
 
   // primary = NUMBER | CONST | fn '(' expr ')' | '(' expr ')' | '√' primary
@@ -243,8 +267,8 @@ class _UmumParser {
     }
 
     // Named functions: sin, cos, tan, log, ln
-    for (final fn in ['sin', 'cos', 'tan', 'log', 'ln']) {
-      if (_src.substring(_pos).startsWith(fn)) {
+    for (final fn in _kFunctions) {
+      if (_src.startsWith(fn, _pos)) {
         _pos += fn.length;
         _skip();
         if (isAtEnd || _cur != '(') throw _ParseEx('Fungsi $fn perlu ( … )');
@@ -268,7 +292,8 @@ class _UmumParser {
     }
 
     // Number literal
-    if (RegExp(r'[\d.]').hasMatch(_cur)) {
+    final c = _src.codeUnitAt(_pos);
+    if (_isDigitCode(c) || c == 0x2E /* . */) {
       return _parseNumber();
     }
 
@@ -280,7 +305,9 @@ class _UmumParser {
     return switch (fn) {
       'sin' => math.sin(rad),
       'cos' => math.cos(rad),
-      'tan' => math.tan(rad),
+      'tan' => math.cos(rad).abs() < 1e-12
+          ? throw const _ParseEx('tan tidak terdefinisi')
+          : math.tan(rad),
       'log' => (arg <= 0)
           ? throw const _ParseEx('log perlu argumen positif')
           : math.log(arg) / math.ln10,
@@ -293,10 +320,10 @@ class _UmumParser {
 
   double _parseNumber() {
     final start = _pos;
-    while (!isAtEnd && RegExp(r'[\d]').hasMatch(_cur)) { _pos++; }
+    while (!isAtEnd && _isDigitCode(_src.codeUnitAt(_pos))) { _pos++; }
     if (!isAtEnd && _cur == '.') {
       _pos++;
-      while (!isAtEnd && RegExp(r'\d').hasMatch(_cur)) { _pos++; }
+      while (!isAtEnd && _isDigitCode(_src.codeUnitAt(_pos))) { _pos++; }
     }
     return double.parse(_src.substring(start, _pos));
   }

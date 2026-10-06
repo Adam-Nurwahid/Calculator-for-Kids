@@ -106,21 +106,6 @@ class KalkulatorKidsApp extends StatelessWidget {
 
         '/rumus/umum1/barisan-deret': (context) =>
         const AdvancedFormulasScreen(initialIndex: 5),
-
-        // ── Legacy / Alias Routes ─────────────────────────────────────────
-        '/rumus/umum1/pecahan':        (context) => const GeometryFormulasScreen(initialIndex: 2),
-        '/rumus/umum1/pangkat':        (context) => const GeometryFormulasScreen(initialIndex: 3),
-        '/rumus/umum1/konversi-persen':(context) => const GeometryFormulasScreen(initialIndex: 4),
-        '/rumus/umum1/aljabar':        (context) => const BasicFormulasScreen(initialIndex: 5),
-        '/rumus/umum1/akar-kuadrat':   (context) => const GeometryFormulasScreen(initialIndex: 5),
-        '/rumus/geometri/trigonometri':(context) => const AdvancedFormulasScreen(initialIndex: 0),
-        '/rumus/geometri/deg-rad':     (context) => const AdvancedFormulasScreen(initialIndex: 1),
-        '/rumus/umum2/bangun-ruang':   (context) => const GeometryFormulasScreen(initialIndex: 1),
-        '/rumus/umum2/trigonometri':   (context) => const AdvancedFormulasScreen(initialIndex: 0),
-        '/rumus/umum2/logaritma':      (context) => const AdvancedFormulasScreen(initialIndex: 2),
-        '/rumus/umum2/akar-kuadrat':   (context) => const GeometryFormulasScreen(initialIndex: 5),
-        '/rumus/umum2/deg-rad':        (context) => const AdvancedFormulasScreen(initialIndex: 1),
-        '/rumus/umum2/barisan-deret':  (context) => const AdvancedFormulasScreen(initialIndex: 5),
       },
     );
   }

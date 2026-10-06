@@ -531,7 +531,7 @@ class _LogarithmCalculatorScreenState extends State<LogarithmCalculatorScreen> {
             onTap: () {}, // Absorb clicks
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,

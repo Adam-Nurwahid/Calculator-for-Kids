@@ -74,7 +74,9 @@ class _CalcResponsiveContainerState extends State<CalcResponsiveContainer> {
 
     // Check characters first for shift combinations
     if (char != null && char.isNotEmpty) {
-      if (RegExp(r'^[0-9]$').hasMatch(char)) {
+      if (char.length == 1 &&
+          char.codeUnitAt(0) >= 0x30 &&
+          char.codeUnitAt(0) <= 0x39) {
         widget.onKeyInput!(char);
         return;
       }

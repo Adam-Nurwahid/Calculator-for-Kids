@@ -17,8 +17,9 @@ const kRumusTextDark = AppColors.textTitle;
 const kRumusTextMuted = AppColors.textDescription;
 const kTipsBg = Color(0xFFFFFBE7);
 const kTipsBorder = Colors.black87;
-const kFormulaBg = Color(0xFFE3F2FD);
-const kFormulaBorder = Color(0xFF1E88E5);
+const kFormulaBg = Colors.white;
+const kFormulaBorder = AppColors.tipBoxBorder;
+const kFormulaShadow = Color(0x0D000000);
 const kDivider = AppColors.tipBoxBorder;
 
 // ---------------------------------------------------------------------------
@@ -31,6 +32,7 @@ class NavOpData {
     this.assetPath,
     this.symbol,
     this.icon,
+    this.tileColor,
     required this.route,
   });
 
@@ -38,6 +40,10 @@ class NavOpData {
   final String? assetPath;
   final String? symbol;
   final IconData? icon;
+
+  /// Optional background colour for the rounded operation tile. When set,
+  /// [icon] or [symbol] is rendered inside the tile instead of [assetPath].
+  final Color? tileColor;
   final String route;
 }
 
@@ -207,7 +213,6 @@ class _RumusHeaderState extends State<RumusHeader> {
             offset: const Offset(0, -20),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -219,31 +224,44 @@ class _RumusHeaderState extends State<RumusHeader> {
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(items.length, (index) {
-                    final item = items[index];
-                    final isActive = index == widget.activeOpIndex;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: _NavOpButton(
-                        data: item,
-                        isActive: isActive,
-                        onTap: () {
-                          if (widget.onOpTabSelected != null) {
-                            widget.onOpTabSelected!(index);
-                          } else if (!isActive) {
-                            Navigator.pushReplacementNamed(context, item.route);
-                          }
-                        },
-                      ),
-                    );
-                  }),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  // Equal top/bottom padding keeps the card visually balanced.
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    // Let active tiles/shadows paint into the card padding
+                    // instead of being clipped by the scroll viewport.
+                    clipBehavior: Clip.none,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(items.length, (index) {
+                        final item = items[index];
+                        final isActive = index == widget.activeOpIndex;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: _NavOpButton(
+                            data: item,
+                            isActive: isActive,
+                            onTap: () {
+                              if (widget.onOpTabSelected != null) {
+                                widget.onOpTabSelected!(index);
+                              } else if (!isActive) {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  item.route,
+                                );
+                              }
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -268,6 +286,7 @@ class _NavOpButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 74,
         child: Column(
@@ -277,57 +296,74 @@ class _NavOpButton extends StatelessWidget {
               scale: isActive ? 1.08 : 1.0,
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: data.assetPath != null
-                    ? Image.asset(
-                  data.assetPath!,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.contain,
-                )
-                    : data.icon != null
-                    ? Icon(
-                  data.icon,
-                  size: 34,
-                )
-                    : FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    data.symbol ?? '',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
+              child: SizedBox(width: 48, height: 48, child: _buildIcon()),
             ),
-            const SizedBox(height: 4),
-            SizedBox(
-              height: 32,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Text(
-                  data.label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: const Color(0xFF333333),
-                    fontSize: 10,
-                    height: 1.15,
-                    fontWeight:
-                    isActive ? FontWeight.bold : FontWeight.w500,
-                  ),
-                ),
+            const SizedBox(height: 6),
+            Text(
+              data.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: const Color(0xFF333333),
+                fontSize: 10,
+                height: 1.15,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIcon() {
+    // Hand-drawn operation tiles give us full control over glyph weight and
+    // padding, so the icon can never spill out of its coloured tile.
+    if (data.tileColor != null || data.icon != null || data.symbol != null) {
+      final color = data.tileColor ?? Colors.transparent;
+      return Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: data.tileColor == null
+              ? null
+              : [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Center(
+            child: data.icon != null
+                ? Icon(data.icon, size: 28, color: Colors.black87)
+                : FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      data.symbol ?? '',
+                      maxLines: 1,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        height: 1.0,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+      );
+    }
+
+    return Image.asset(
+      data.assetPath!,
+      width: 48,
+      height: 48,
+      fit: BoxFit.contain,
     );
   }
 }
@@ -448,10 +484,20 @@ class NumberedPropertyItem extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: kFormulaBorder),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: kFormulaShadow,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       example!,
@@ -553,9 +599,7 @@ class VerticalMathCalculation extends StatelessWidget {
                   ),
                   Text(
                     resultNumber,
-                    style: styleNum.copyWith(
-                      color: const Color(0xFF2E7D32),
-                    ),
+                    style: styleNum.copyWith(color: const Color(0xFF2E7D32)),
                   ),
                 ],
               ),
@@ -747,8 +791,11 @@ class BracketStepWidget extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
-                  const Icon(Icons.arrow_right_rounded,
-                      color: AppColors.rumusHeaderBg, size: 22),
+                  const Icon(
+                    Icons.arrow_right_rounded,
+                    color: AppColors.rumusHeaderBg,
+                    size: 22,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     steps[index],
@@ -774,11 +821,7 @@ class BracketStepWidget extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class RumusTipsCard extends StatelessWidget {
-  const RumusTipsCard({
-    super.key,
-    required this.tipText,
-    this.title = 'Tips:',
-  });
+  const RumusTipsCard({super.key, required this.tipText, this.title = 'Tips:'});
 
   final String tipText;
   final String title;
@@ -1232,11 +1275,7 @@ class ContohBox extends StatelessWidget {
 }
 
 class FormulaCard extends StatelessWidget {
-  const FormulaCard({
-    super.key,
-    required this.label,
-    required this.formula,
-  });
+  const FormulaCard({super.key, required this.label, required this.formula});
 
   final String label;
   final String formula;
@@ -1250,7 +1289,10 @@ class FormulaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: kFormulaBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: kFormulaBorder, width: 1.5),
+        border: Border.all(color: kFormulaBorder),
+        boxShadow: const [
+          BoxShadow(color: kFormulaShadow, blurRadius: 6, offset: Offset(0, 2)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1259,7 +1301,7 @@ class FormulaCard extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 12,
-              color: kFormulaBorder,
+              color: kRumusOrange,
               fontFamily: 'Fredoka One',
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -1428,10 +1470,7 @@ class InfoRow extends StatelessWidget {
         children: [
           Text(
             '$label  ',
-            style: const TextStyle(
-              color: kRumusTextMuted,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: kRumusTextMuted, fontSize: 14),
           ),
           Expanded(
             child: Text(

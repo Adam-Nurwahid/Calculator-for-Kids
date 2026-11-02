@@ -11,10 +11,7 @@ import 'tanda_kurung_screen.dart';
 import 'bangun_datar_screen.dart';
 
 class BasicFormulasScreen extends StatefulWidget {
-  const BasicFormulasScreen({
-    super.key,
-    this.initialIndex = 0,
-  });
+  const BasicFormulasScreen({super.key, this.initialIndex = 0});
 
   final int initialIndex;
 
@@ -29,32 +26,38 @@ class _BasicFormulasScreenState extends State<BasicFormulasScreen> {
   static const List<NavOpData> _basicNavItems = [
     NavOpData(
       label: 'Penjumlahan',
-      assetPath: 'assets/ic_cal_advance/ic_plus.png',
+      icon: Icons.add_rounded,
+      tileColor: AppColors.rumusAddColor,
       route: '/rumus/anak/penjumlahan',
     ),
     NavOpData(
       label: 'Pengurangan',
-      assetPath: 'assets/ic_cal_advance/ic_minus.png',
+      icon: Icons.remove_rounded,
+      tileColor: AppColors.rumusSubColor,
       route: '/rumus/anak/pengurangan',
     ),
     NavOpData(
       label: 'Perkalian',
-      assetPath: 'assets/ic_cal_advance/ic_kali.png',
+      icon: Icons.close_rounded,
+      tileColor: AppColors.rumusMulColor,
       route: '/rumus/anak/perkalian',
     ),
     NavOpData(
       label: 'Pembagian',
-      assetPath: 'assets/ic_cal_advance/ic_bagi.png',
+      symbol: '÷',
+      tileColor: AppColors.rumusDivColor,
       route: '/rumus/anak/pembagian',
     ),
     NavOpData(
       label: 'Tanda Kurung',
-      assetPath: 'assets/ic_cal_advance/ic_kurung.png',
+      symbol: '( )',
+      tileColor: AppColors.rumusBracketColor,
       route: '/rumus/anak/tanda-kurung',
     ),
     NavOpData(
       label: 'Bangun Datar',
-      assetPath: 'assets/ic_cal_advance/ic_datar.png',
+      icon: Icons.category_rounded,
+      tileColor: AppColors.rumusShapesColor,
       route: '/rumus/anak/bangun-datar',
     ),
   ];

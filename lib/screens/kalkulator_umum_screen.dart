@@ -27,20 +27,31 @@ class KalkulatorUmumScreen extends StatefulWidget {
 /// skip no-op updates, so keypresses rebuild only the display subtree.
 @immutable
 class _DisplayState {
-  const _DisplayState(this.expression, this.result, this.isError);
+  const _DisplayState(
+    this.expression,
+    this.result,
+    this.isError, {
+    this.isAnswer = false,
+  });
+
   final String expression;
   final String result;
   final bool isError;
+
+  /// True right after "=" produced a valid answer. Drives the emphasis
+  /// animation that makes the result the dominant element on the display.
+  final bool isAnswer;
 
   @override
   bool operator ==(Object other) =>
       other is _DisplayState &&
       other.expression == expression &&
       other.result == result &&
-      other.isError == isError;
+      other.isError == isError &&
+      other.isAnswer == isAnswer;
 
   @override
-  int get hashCode => Object.hash(expression, result, isError);
+  int get hashCode => Object.hash(expression, result, isError, isAnswer);
 }
 
 /// True if [s] contains an ASCII digit or '(' (replaces a per-keypress RegExp).
@@ -72,8 +83,9 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
   late final Animation<double> _shakeAnim;
 
   /// Display listens to this; the button grid does not rebuild per keypress.
-  final ValueNotifier<_DisplayState> _calc =
-      ValueNotifier(const _DisplayState('', '', false));
+  final ValueNotifier<_DisplayState> _calc = ValueNotifier(
+    const _DisplayState('', '', false),
+  );
 
   @override
   void initState() {
@@ -83,9 +95,10 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _shakeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticOut),
-    );
+    _shakeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticOut));
   }
 
   @override
@@ -97,9 +110,11 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
 
   // ── Colours (theme-aware) ────────────────────────────────────────────────
 
-  Color get _bgColor => _isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFFFFFF);
+  Color get _bgColor =>
+      _isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFFFFFF);
   Color get _exprColor => _isDark ? Colors.white : Colors.black;
-  Color get _resultColor => _isDark ? const Color(0xFF888888) : const Color(0xFF999999);
+  Color get _resultColor =>
+      _isDark ? const Color(0xFF888888) : const Color(0xFF999999);
   Color get _btnNumBg =>
       _isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF0F0F0);
   Color get _btnNumFg => _isDark ? Colors.white : Colors.black;
@@ -117,7 +132,12 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
   }
 
   void _publish() {
-    _calc.value = _DisplayState(_expression, _result, _isError);
+    _calc.value = _DisplayState(
+      _expression,
+      _result,
+      _isError,
+      isAnswer: _justEvaluated && _result.isNotEmpty,
+    );
   }
 
   void _handleInput(String value) {
@@ -146,8 +166,10 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
           bool removed = false;
           for (final fn in fns) {
             if (_expression.endsWith(fn)) {
-              _expression =
-                  _expression.substring(0, _expression.length - fn.length);
+              _expression = _expression.substring(
+                0,
+                _expression.length - fn.length,
+              );
               removed = true;
               break;
             }
@@ -197,8 +219,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
   /// computed in the previous angle mode.
   void _toggleAngleMode() {
     setState(() {
-      _angleMode =
-          _angleMode == AngleMode.deg ? AngleMode.rad : AngleMode.deg;
+      _angleMode = _angleMode == AngleMode.deg ? AngleMode.rad : AngleMode.deg;
     });
     if (_expression.isNotEmpty) {
       _updateLive();
@@ -263,11 +284,8 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
                           children: [
                             _buildTopBar(),
                             const SizedBox(height: 4),
-                            SizedBox(
-                              height: 120,
-                              child: _buildDisplay(),
-                            ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 120, child: _buildDisplay()),
+                            const SizedBox(height: 32),
                             _buildButtonGrid(),
                           ],
                         ),
@@ -280,6 +298,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
                       _buildTopBar(),
                       const SizedBox(height: 8),
                       Expanded(child: _buildDisplay()),
+                      const SizedBox(height: 16),
                       _buildButtonGrid(),
                     ],
                   );
@@ -406,52 +425,72 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ValueListenableBuilder<_DisplayState>(
           valueListenable: _calc,
-          builder: (context, d, _) => Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Expression
-              FittedBox(
-                alignment: Alignment.centerRight,
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  d.expression.isEmpty ? '0' : d.expression,
-                  style: TextStyle(
-                    fontSize: 44,
-                    fontWeight: FontWeight.bold,
-                    color: _exprColor,
-                    letterSpacing: 1,
+          builder: (context, d, _) {
+            final isAnswer = d.isAnswer && !d.isError;
+            final baseStyle = DefaultTextStyle.of(context).style;
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Expression (Ekspresi) — dibungkus SizedBox width: infinity
+                SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    alignment: Alignment.centerRight,
+                    fit: BoxFit.scaleDown,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                      style: baseStyle.copyWith(
+                        fontSize: isAnswer ? 30 : 44,
+                        fontWeight: isAnswer ? FontWeight.w500 : FontWeight.bold,
+                        color: isAnswer ? _resultColor : _exprColor,
+                        letterSpacing: isAnswer ? 0.5 : 1,
+                        height: 1.05,
+                      ),
+                      child: Text(
+                        d.expression.isEmpty ? '0' : d.expression,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              // Live result / answer
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: d.result.isEmpty
-                    ? const SizedBox(height: 28, key: ValueKey('empty'))
-                    : FittedBox(
-                        alignment: Alignment.centerRight,
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          d.result,
-                          key: ValueKey(d.result),
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w400,
-                            color: d.isError ? Colors.redAccent : _resultColor,
-                          ),
-                        ),
+                const SizedBox(height: 6),
+                // Result / Live preview (Hasil) — dibungkus SizedBox width: infinity
+                SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    alignment: Alignment.centerRight,
+                    fit: BoxFit.scaleDown,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                      style: baseStyle.copyWith(
+                        fontSize: d.isError ? 34 : (isAnswer ? 60 : 28),
+                        fontWeight: d.isError
+                            ? FontWeight.w700
+                            : (isAnswer ? FontWeight.w800 : FontWeight.w400),
+                        color: d.isError
+                            ? Colors.redAccent
+                            : (isAnswer ? _exprColor : _resultColor),
+                        height: 1.0,
                       ),
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
+                      child: Text(
+                        d.result.isEmpty ? ' ' : d.result,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            );
+          },
         ),
       ),
     );
   }
-
   // ── Button grid ────────────────────────────────────────────────────────────
 
   Widget _buildButtonGrid() {
@@ -484,8 +523,10 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
           ]),
           _gap(),
           _buildRow([
-            _Btn(_angleMode == AngleMode.deg ? 'DEG' : 'RAD',
-                _BtnKind.angleSel),
+            _Btn(
+              _angleMode == AngleMode.deg ? 'DEG' : 'RAD',
+              _BtnKind.angleSel,
+            ),
             const _Btn('1', _BtnKind.num),
             const _Btn('2', _BtnKind.num),
             const _Btn('3', _BtnKind.num),
@@ -501,9 +542,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
   Widget _gap() => const SizedBox(height: 8);
 
   Widget _buildRow(List<_Btn> btns) {
-    return Row(
-      children: btns.map((b) => _buildBtnWidget(b)).toList(),
-    );
+    return Row(children: btns.map((b) => _buildBtnWidget(b)).toList());
   }
 
   Widget _buildLastRow() {
@@ -513,10 +552,7 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
         _buildBtnWidget(const _Btn('0', _BtnKind.num)),
         _buildBtnWidget(const _Btn(',', _BtnKind.num)),
         // Flexible span for '=' matching layout grid
-        Expanded(
-          flex: 2,
-          child: _buildEqualBtn(),
-        ),
+        Expanded(flex: 2, child: _buildEqualBtn()),
       ],
     );
   }
@@ -569,9 +605,8 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
       _BtnKind.num => _btnNumBg,
       _BtnKind.spec => _btnSpecBg,
       _BtnKind.op => _kOrange,
-      _BtnKind.angleSel => _isDark
-          ? const Color(0xFF3A3A3A)
-          : const Color(0xFFD8D8D8),
+      _BtnKind.angleSel =>
+        _isDark ? const Color(0xFF3A3A3A) : const Color(0xFFD8D8D8),
     };
   }
 
@@ -604,8 +639,9 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
               ),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF1C1C1C) : Colors.white,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -667,7 +703,10 @@ class _KalkulatorUmumScreenState extends State<KalkulatorUmumScreen>
                             contentPadding: EdgeInsets.zero,
                             title: Text(
                               e.expression,
-                              style: TextStyle(color: _resultColor, fontSize: 15),
+                              style: TextStyle(
+                                color: _resultColor,
+                                fontSize: 15,
+                              ),
                             ),
                             subtitle: Text(
                               '= ${e.result}',
@@ -874,7 +913,9 @@ class _IconBtnState extends State<_IconBtn> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _isHovered ? widget.color.withValues(alpha: 0.12) : Colors.transparent,
+            color: _isHovered
+                ? widget.color.withValues(alpha: 0.12)
+                : Colors.transparent,
             shape: BoxShape.circle,
           ),
           child: Icon(widget.icon, color: widget.color, size: 24),

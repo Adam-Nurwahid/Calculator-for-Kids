@@ -24,21 +24,27 @@ class _CalcState {
     this.expression = '',
     this.result = '',
     this.isError = false,
+    this.isAnswer = false,
   });
 
   final String expression;
   final String result;
   final bool isError;
 
+  /// True right after "=" produced a valid answer. Used to enlarge the
+  /// result and shrink the expression above it.
+  final bool isAnswer;
+
   @override
   bool operator ==(Object other) =>
       other is _CalcState &&
       other.expression == expression &&
       other.result == result &&
-      other.isError == isError;
+      other.isError == isError &&
+      other.isAnswer == isAnswer;
 
   @override
-  int get hashCode => Object.hash(expression, result, isError);
+  int get hashCode => Object.hash(expression, result, isError, isAnswer);
 }
 
 /// True if [s] contains at least one ASCII digit (replaces a per-keypress RegExp).
@@ -88,9 +94,10 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _shakeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticOut),
-    );
+    _shakeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticOut));
   }
 
   @override
@@ -112,6 +119,7 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
       expression: _expression,
       result: _result,
       isError: _isError,
+      isAnswer: _justEvaluated && _result.isNotEmpty,
     );
   }
 
@@ -212,7 +220,9 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
     final isLandscape = context.isLandscape;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDCB35), // Warna kuning cerah dasar kalkulator
+      backgroundColor: const Color(
+        0xFFFDCB35,
+      ), // Warna kuning cerah dasar kalkulator
       body: CalcResponsiveContainer(
         backgroundColor: const Color(0xFFFDCB35),
         maxWidth: 480,
@@ -241,13 +251,18 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
                               SizedBox(height: isCompact ? 8 : 20),
                               SizedBox(
                                 height: isCompact ? 130 : 160,
-                                child: _buildDisplayWithMascot(compactMode: isCompact),
+                                child: _buildDisplayWithMascot(
+                                  compactMode: isCompact,
+                                ),
                               ),
                             ],
                           ),
                           Padding(
                             padding: EdgeInsets.only(top: isCompact ? 10 : 16),
-                            child: _buildButtonGrid(context, compactMode: isCompact),
+                            child: _buildButtonGrid(
+                              context,
+                              compactMode: isCompact,
+                            ),
                           ),
                         ],
                       ),
@@ -278,9 +293,11 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back button
+          // Back button — keep a full 48x48 touch target clear of the mascot.
           IconButton(
             onPressed: () => Navigator.pop(context),
+            tooltip: 'Kembali',
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: Colors.black87,
@@ -327,89 +344,142 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
   }
 
   Widget _buildDisplayWithMascot({required bool compactMode}) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // ── Maskot Kucing Baca Buku ─────────────────────────────
-        Positioned(
-          top: compactMode ? -35 : -55,
-          left: 24,
-          child: Image.asset(
-            'assets/membaca_buku_belajar_1.png',
-            height: compactMode ? 42 : 55,
-            fit: BoxFit.contain,
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mascotHeight = compactMode ? 42.0 : 55.0;
+        final mascotWidth = mascotHeight * (186 / 93);
 
-        // ── Layar Kotak Display Kuning ──────────────────────────
-        Positioned.fill(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: AnimatedBuilder(
-              animation: _shakeAnim,
-              builder: (context, child) {
-                final shake = math.sin(_shakeAnim.value * math.pi * 6) *
-                    (_isError ? 10 * (1 - _shakeAnim.value) : 0);
-                return Transform.translate(
-                  offset: Offset(shake, 0),
-                  child: child,
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: compactMode ? 8 : 12,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5B800),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                // Only this subtree rebuilds on each keypress.
-                child: ValueListenableBuilder<_CalcState>(
-                  valueListenable: _calc,
-                  builder: (context, s, _) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Ekspresi perhitungan
-                      FittedBox(
-                        alignment: Alignment.centerRight,
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          s.expression.isEmpty ? '0' : s.expression,
-                          style: TextStyle(
-                            fontSize: compactMode ? 36 : 48,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: compactMode ? 4 : 8),
+        // Center the mascot above the display but keep it clear of both the
+        // back button (left) and the "Kalkulator SD" chip (right).
+        final preferredLeft = (constraints.maxWidth - mascotWidth) / 2 - 32;
+        final maxLeft = constraints.maxWidth - mascotWidth - 170;
+        final mascotLeft = math
+            .max(72.0, math.min(preferredLeft, maxLeft))
+            .toDouble();
 
-                      // Hasil / Error
-                      FittedBox(
-                        alignment: Alignment.centerRight,
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          s.result,
-                          style: TextStyle(
-                            fontSize: compactMode ? 22 : 28,
-                            fontWeight: FontWeight.bold,
-                            color: s.isError
-                                ? Colors.red.shade900
-                                : const Color(0xFF6B587B),
-                          ),
-                        ),
-                      ),
-                    ],
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // ── Maskot Kucing Baca Buku ─────────────────────────────
+            // Sit the mascot just over the display edge, away from controls.
+            Positioned(
+              top: -(mascotHeight - 4),
+              left: mascotLeft,
+              child: IgnorePointer(
+                child: Image.asset(
+                  'assets/membaca_buku_belajar_1.png',
+                  width: mascotWidth,
+                  height: mascotHeight,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+
+            // ── Layar Kotak Display Kuning ──────────────────────────
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: AnimatedBuilder(
+                  animation: _shakeAnim,
+                  builder: (context, child) {
+                    final shake =
+                        math.sin(_shakeAnim.value * math.pi * 6) *
+                        (_isError ? 10 * (1 - _shakeAnim.value) : 0);
+                    return Transform.translate(
+                      offset: Offset(shake, 0),
+                      child: child,
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: compactMode ? 8 : 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5B800),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    // Only this subtree rebuilds on each keypress.
+                    child: ValueListenableBuilder<_CalcState>(
+                      valueListenable: _calc,
+                      builder: (context, s, _) {
+                        final isAnswer = s.isAnswer && !s.isError;
+                        final baseStyle = DefaultTextStyle.of(context).style;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Ekspresi perhitungan — small and muted after "=".
+                            AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              style: baseStyle.copyWith(
+                                fontSize: compactMode
+                                    ? (isAnswer ? 20 : 36)
+                                    : (isAnswer ? 24 : 48),
+                                fontWeight: isAnswer
+                                    ? FontWeight.w600
+                                    : FontWeight.w900,
+                                color: isAnswer
+                                    ? Colors.black.withValues(alpha: 0.55)
+                                    : Colors.black,
+                                letterSpacing: 1.5,
+                                height: 1.1,
+                              ),
+                              child: FittedBox(
+                                alignment: Alignment.centerRight,
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  s.expression.isEmpty ? '0' : s.expression,
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: compactMode ? 4 : 6),
+
+                            // Hasil / Error — the answer dominates after "=".
+                            AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              style: baseStyle.copyWith(
+                                fontSize: s.isError
+                                    ? (compactMode ? 26 : 32)
+                                    : (isAnswer
+                                          ? (compactMode ? 46 : 56)
+                                          : (compactMode ? 22 : 28)),
+                                fontWeight: s.isError
+                                    ? FontWeight.w800
+                                    : (isAnswer
+                                          ? FontWeight.w900
+                                          : FontWeight.bold),
+                                color: s.isError
+                                    ? Colors.red.shade900
+                                    : (isAnswer
+                                          ? Colors.black
+                                          : const Color(0xFF6B587B)),
+                                height: 1.0,
+                              ),
+                              child: FittedBox(
+                                alignment: Alignment.centerRight,
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  s.result.isEmpty ? ' ' : s.result,
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -426,40 +496,60 @@ class _KalkulatorAnakScreenState extends State<KalkulatorAnakScreen>
       padding: EdgeInsets.fromLTRB(16, 4, 16, compactMode ? 12 : 20),
       child: Column(
         children: [
-          _buildRow(['⤢', 'AC', '⌫', '÷'], [
-            _BtnStyle.green,
-            _BtnStyle.green,
-            _BtnStyle.green,
-            _BtnStyle.orange,
-          ], size),
+          _buildRow(
+            ['⤢', 'AC', '⌫', '÷'],
+            [
+              _BtnStyle.green,
+              _BtnStyle.green,
+              _BtnStyle.green,
+              _BtnStyle.orange,
+            ],
+            size,
+          ),
           SizedBox(height: vGap),
-          _buildRow(['7', '8', '9', '×'], [
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.orange,
-          ], size),
+          _buildRow(
+            ['7', '8', '9', '×'],
+            [
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.orange,
+            ],
+            size,
+          ),
           SizedBox(height: vGap),
-          _buildRow(['4', '5', '6', '-'], [
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.orange,
-          ], size),
+          _buildRow(
+            ['4', '5', '6', '-'],
+            [
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.orange,
+            ],
+            size,
+          ),
           SizedBox(height: vGap),
-          _buildRow(['1', '2', '3', '+'], [
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.orange,
-          ], size),
+          _buildRow(
+            ['1', '2', '3', '+'],
+            [
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.orange,
+            ],
+            size,
+          ),
           SizedBox(height: vGap),
-          _buildRow(['0', '00', ',', '='], [
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.white,
-            _BtnStyle.coral,
-          ], size),
+          _buildRow(
+            ['0', '00', ',', '='],
+            [
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.white,
+              _BtnStyle.coral,
+            ],
+            size,
+          ),
         ],
       ),
     );
@@ -509,11 +599,11 @@ class _CalcRoundButton extends StatelessWidget {
   ];
 
   Color get _bgColor => switch (style) {
-        _BtnStyle.white => const Color(0xFFFAFAFA),
-        _BtnStyle.green => const Color(0xFF28C734),
-        _BtnStyle.orange => const Color(0xFFFB9403),
-        _BtnStyle.coral => const Color(0xFFFF6F37),
-      };
+    _BtnStyle.white => const Color(0xFFFAFAFA),
+    _BtnStyle.green => const Color(0xFF28C734),
+    _BtnStyle.orange => const Color(0xFFFB9403),
+    _BtnStyle.coral => const Color(0xFFFF6F37),
+  };
 
   Color get _textColor =>
       style == _BtnStyle.white ? Colors.black : Colors.black87;
@@ -556,10 +646,18 @@ class _CalcRoundButton extends StatelessWidget {
     final fontBase = (size * 0.46).clamp(18.0, 28.0);
 
     if (label == '⌫') {
-      return Icon(Icons.backspace_outlined, color: Colors.black87, size: iconSize);
+      return Icon(
+        Icons.backspace_outlined,
+        color: Colors.black87,
+        size: iconSize,
+      );
     }
     if (label == '⤢') {
-      return Icon(Icons.open_in_full_rounded, color: Colors.black87, size: iconSize * 0.9);
+      return Icon(
+        Icons.open_in_full_rounded,
+        color: Colors.black87,
+        size: iconSize * 0.9,
+      );
     }
     return Text(
       label,

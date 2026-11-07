@@ -29,7 +29,7 @@ class LevelSelectionScreen extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Image.asset(
                     'assets/cat_bg.png',
-                    fit: BoxFit.fitWidth,
+                    fit: BoxFit.cover,
                     alignment: Alignment.bottomCenter,
                   ),
                 ),

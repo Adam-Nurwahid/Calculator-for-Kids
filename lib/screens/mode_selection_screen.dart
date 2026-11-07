@@ -122,7 +122,7 @@ class ModeSelectionScreen extends StatelessWidget {
                     'assets/cat_head.png',
                     width: double.infinity,
                     height: isLandscape ? 70 : null,
-                    fit: isLandscape ? BoxFit.contain : BoxFit.fitWidth,
+                    fit: BoxFit.cover,
                     alignment: Alignment.bottomCenter,
                   ),
                 ),

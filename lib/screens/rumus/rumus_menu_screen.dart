@@ -137,7 +137,7 @@ class _RumusMenuScreenState extends State<RumusMenuScreen> {
   @override
   void initState() {
     super.initState();
-    _pageCtrl = PageController();
+    _pageCtrl = PageController(viewportFraction: 1.0);
   }
 
   @override
@@ -225,10 +225,14 @@ class _RumusMenuScreenState extends State<RumusMenuScreen> {
                                 itemCount: _tiers.length,
                                 itemBuilder: (context, pageIndex) {
                                   final tier = _tiers[pageIndex];
+
                                   return ListView.separated(
                                     physics: const BouncingScrollPhysics(),
+                                    // Berikan padding horizontal di sini (misal: 16 atau 20)
+                                    // agar ada jarak aman di dalam halaman itu sendiri
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                     itemCount: tier.items.length,
-                                    separatorBuilder: (context, index) => const SizedBox(height: 10),
+                                    separatorBuilder: (context, index) => const SizedBox(height: 12),
                                     itemBuilder: (ctx, itemIndex) {
                                       final item = tier.items[itemIndex];
                                       return _MaterialButton(

@@ -86,20 +86,15 @@ class _AdvancedFormulasScreenState extends State<AdvancedFormulasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.screenBg,
-      body: Column(
-        children: [
-          // Fixed Top Banner & Category Navigation Bar
-          RumusHeader(
+      body: RumusHeaderLayout(
+        header: RumusHeader(
             title: 'Matematika Tingkat\nLanjut',
             activeOpIndex: _currentIndex,
             showNav: true,
             onOpTabSelected: _onTabSelected,
             navItems: _advancedNavItems,
           ),
-
-          // Scrollable Content area with PageView
-          Expanded(
-            child: PageView(
+        body: PageView(
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
@@ -115,8 +110,6 @@ class _AdvancedFormulasScreenState extends State<AdvancedFormulasScreen> {
                 BarisanDeretScreen(),
               ],
             ),
-          ),
-        ],
       ),
     );
   }

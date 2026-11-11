@@ -64,6 +64,9 @@ class RumusHeader extends StatefulWidget {
   final ValueChanged<int>? onOpTabSelected;
   final List<NavOpData>? navItems;
 
+  /// How far (px) the nav card is pulled up over the banner.
+  static const double navOverlap = 20.0;
+
   static const List<NavOpData> _defaultNavItems = [
     NavOpData(
       label: 'Penjumlahan',
@@ -210,7 +213,7 @@ class _RumusHeaderState extends State<RumusHeader> {
         // Horizontal Quick-Navigation Category Bar
         if (widget.showNav)
           Transform.translate(
-            offset: const Offset(0, -20),
+            offset: const Offset(0, -RumusHeader.navOverlap),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
@@ -266,6 +269,50 @@ class _RumusHeaderState extends State<RumusHeader> {
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// Lays out a [RumusHeader] with its scrolling [body] so the body slides
+/// BEHIND the floating navigation card (no empty gap below the card).
+///
+/// The nav card is pulled up by [RumusHeader.navOverlap] using a paint-only
+/// transform, which leaves that much empty layout space under it. Here the
+/// body is shifted up by the same amount and drawn first (the Column is laid
+/// out bottom-to-top), so the header paints on top. Pages inside [body] should
+/// add [RumusHeader.navOverlap] to their top padding to keep the first item
+/// at the same resting position.
+class RumusHeaderLayout extends StatelessWidget {
+  const RumusHeaderLayout({super.key, required this.header, required this.body});
+
+  final Widget header;
+  final Widget body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      // Reversed so the header (last child) is painted above the body.
+      verticalDirection: VerticalDirection.up,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final h = constraints.maxHeight + RumusHeader.navOverlap;
+              return Transform.translate(
+                offset: const Offset(0, -RumusHeader.navOverlap),
+                child: OverflowBox(
+                  alignment: Alignment.topCenter,
+                  minHeight: h,
+                  maxHeight: h,
+                  child: body,
+                ),
+              );
+            },
+          ),
+        ),
+        header,
       ],
     );
   }

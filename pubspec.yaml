@@ -15,9 +15,6 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  # Fredoka One font — loaded via google_fonts so no .ttf file needs to be
-  # bundled manually. On first run it downloads from Google Fonts and caches
-  # locally; subsequent runs work fully offline.
   google_fonts: ^6.2.1
 
 dev_dependencies:
@@ -39,8 +36,11 @@ flutter:
     - assets/ic_cal_advance/
 
   fonts:
-    - family: GothamRounded
-      fonts:
-        - asset: assets/fonts/Gotham Rounded Light.otf
+  - family: Nunito
+    fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-Light.ttf
           weight: 300
 

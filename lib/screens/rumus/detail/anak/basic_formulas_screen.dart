@@ -89,20 +89,15 @@ class _BasicFormulasScreenState extends State<BasicFormulasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.screenBg,
-      body: Column(
-        children: [
-          // Fixed Top Header & Category Navigation Bar
-          RumusHeader(
+      body: RumusHeaderLayout(
+        header: RumusHeader(
             title: 'Operasi Dasar',
             activeOpIndex: _currentIndex,
             showNav: true,
             onOpTabSelected: _onTabSelected,
             navItems: _basicNavItems,
           ),
-
-          // Scrollable Content area with PageView
-          Expanded(
-            child: PageView(
+        body: PageView(
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
@@ -118,8 +113,6 @@ class _BasicFormulasScreenState extends State<BasicFormulasScreen> {
                 BangunDatarScreen(),
               ],
             ),
-          ),
-        ],
       ),
     );
   }

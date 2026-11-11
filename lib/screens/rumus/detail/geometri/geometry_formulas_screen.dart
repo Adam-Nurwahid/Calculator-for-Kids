@@ -86,20 +86,15 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.screenBg,
-      body: Column(
-        children: [
-          // Fixed Top Header Banner & Category Selector Bar
-          RumusHeader(
+      body: RumusHeaderLayout(
+        header: RumusHeader(
             title: ' Matematika Tingkat Lanjut',
             activeOpIndex: _currentIndex,
             showNav: true,
             onOpTabSelected: _onTabSelected,
             navItems: _geometryNavItems,
           ),
-
-          // Scrollable Content area with PageView
-          Expanded(
-            child: PageView(
+        body: PageView(
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
@@ -115,8 +110,6 @@ class _GeometryFormulasScreenState extends State<GeometryFormulasScreen> {
                 StatistikaScreen(),
               ],
             ),
-          ),
-        ],
       ),
     );
   }

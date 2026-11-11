@@ -9,8 +9,8 @@ class BangunDatarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 32),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16 + RumusHeader.navOverlap, 20, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
